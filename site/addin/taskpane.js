@@ -1,6 +1,6 @@
-import { init as initOffice, signIn, isSlideShow } from "./addin.js";
-import { insertInteraction } from "./insert-interaction.js";
-import { questionForm, validateQuestion } from "./question-form.js";
+import { init as initOffice, signIn, isSlideShow } from "./addin.js?v=nour-1.1";
+import { insertInteraction } from "./insert-interaction.js?v=nour-1.1";
+import { questionForm, validateQuestion } from "./question-form.js?v=nour-1.1";
 export { signIn };
 let page = "list", force = false, selected = null, busy = false;
 let draft = null;

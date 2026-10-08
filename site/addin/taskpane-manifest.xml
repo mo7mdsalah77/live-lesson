@@ -20,7 +20,7 @@
     <Host Name="Presentation"/>
   </Hosts>
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://mo7mdsalah77.github.io/live-lesson/?addin=panel"/>
+    <SourceLocation DefaultValue="https://mo7mdsalah77.github.io/live-lesson/?addin=panel&amp;v=nour-1.1"/>
   </DefaultSettings>
   <Permissions>ReadWriteDocument</Permissions>
   <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
@@ -71,7 +71,7 @@
       </bt:Images>
       <bt:Urls>
         <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="http://go.microsoft.com/fwlink/?LinkId=276812"/>
-        <bt:Url id="Taskpane.Url" DefaultValue="https://mo7mdsalah77.github.io/live-lesson/?addin=panel"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://mo7mdsalah77.github.io/live-lesson/?addin=panel&amp;v=nour-1.1"/>
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="GetStarted.Title" DefaultValue="Get started with the Nour add-in!"/>

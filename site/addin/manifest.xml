@@ -20,7 +20,7 @@
     <Host Name="Presentation"/>
   </Hosts>
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://mo7mdsalah77.github.io/live-lesson/?addin=1"/>
+    <SourceLocation DefaultValue="https://mo7mdsalah77.github.io/live-lesson/?addin=1&amp;v=nour-1.1"/>
     <RequestedWidth>960</RequestedWidth>
     <RequestedHeight>540</RequestedHeight>
   </DefaultSettings>

@@ -4,7 +4,7 @@ async function zipLibrary() {
   if (globalThis.JSZip) return globalThis.JSZip;
   if (!zipReady) zipReady = new Promise((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = new URL("./jszip.min.js", import.meta.url).href;
+    script.src = new URL("./jszip.min.js?v=nour-1.1", import.meta.url).href;
     script.onload = () => resolve(globalThis.JSZip);
     script.onerror = () => { zipReady = null; reject(new Error("Could not load the slide builder. Try again.")); };
     document.head.append(script);
@@ -13,7 +13,7 @@ async function zipLibrary() {
 }
 export async function interactionPresentation(question) {
   const Zip = await zipLibrary();
-  const response = await fetch(new URL("./interaction-template.pptx", import.meta.url));
+  const response = await fetch(new URL("./interaction-template.pptx?v=nour-1.1", import.meta.url));
   if (!response.ok) throw new Error("Could not load the interaction slide. Try again.");
   const zip = await Zip.loadAsync(await response.arrayBuffer());
   const path = "ppt/slides/udata/data.xml";
