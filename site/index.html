@@ -594,8 +594,9 @@ function goTo(i) {
 }
 function toggleReveal() {
   const sl = curSlide(); if (!sl) return;
-  if (S.live.reveal) return setLive({ reveal: false, revealKey: null, summary: null });
-  setLive({ reveal: true, open: false, revealKey: { id: sl.id, key: S.keys[sl.id] || null }, summary: summaryFor(sl, studentList()) });
+  // Hiding the answer puts answers back the way they were before Show answer closed them.
+  if (S.live.reveal) return setLive({ reveal: false, open: S.live.openBefore !== false, openBefore: null, revealKey: null, summary: null });
+  setLive({ reveal: true, open: false, openBefore: S.live.open, revealKey: { id: sl.id, key: S.keys[sl.id] || null }, summary: summaryFor(sl, studentList()) });
 }
 
 function barsEl(sl, sum) {
