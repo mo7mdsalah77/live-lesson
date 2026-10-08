@@ -25,7 +25,7 @@ const fb = initializeApp(firebaseConfig);
 const auth = getAuth(fb);
 const fs = getFirestore(fb);
 // Opened as ?addin: running inside PowerPoint as the Live Lesson add-in (teacher only).
-const addin = new URLSearchParams(location.search).has("addin") ? await import("./addin/addin.js") : null;
+const addin = new URLSearchParams(location.search).has("addin") ? await import(new URLSearchParams(location.search).get("addin") === "panel" ? "./addin/taskpane.js" : "./addin/addin.js") : null;
 if (addin) { await addin.init(); window.EMBED = addin; }
 const teacherMode = !!addin || location.hash === "#teacher";
 

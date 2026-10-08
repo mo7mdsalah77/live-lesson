@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+  xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="TaskPaneApp">
+  <Id>a97e0b29-e7df-4c03-8121-0e1acb5e2844</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>Live Lesson</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="Live Lesson Studio"/>
+  <Description DefaultValue="Create interactive lesson questions beside your PowerPoint slides."/>
+  <IconUrl DefaultValue="https://mo7mdsalah77.github.io/live-lesson/addin/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://mo7mdsalah77.github.io/live-lesson/addin/icon-64.png"/>
+  <SupportUrl DefaultValue="https://github.com/mo7mdsalah77/live-lesson"/>
+  <AppDomains>
+    <AppDomain>https://accounts.google.com</AppDomain>
+    <AppDomain>https://mo7mdsalah77.github.io/live-lesson/</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Presentation"/>
+  </Hosts>
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://mo7mdsalah77.github.io/live-lesson/?addin=panel"/>
+  </DefaultSettings>
+  <Permissions>ReadWriteDocument</Permissions>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Presentation">
+        <DesktopFormFactor>
+          <GetStarted>
+            <Title resid="GetStarted.Title"/>
+            <Description resid="GetStarted.Description"/>
+            <LearnMoreUrl resid="GetStarted.LearnMoreUrl"/>
+          </GetStarted>
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="CommandsGroup">
+                <Label resid="CommandsGroup.Label"/>
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16x16"/>
+                  <bt:Image size="32" resid="Icon.32x32"/>
+                  <bt:Image size="80" resid="Icon.80x80"/>
+                </Icon>
+                <Control xsi:type="Button" id="TaskpaneButton">
+                  <Label resid="TaskpaneButton.Label"/>
+                  <Supertip>
+                    <Title resid="TaskpaneButton.SupertipTitle"/>
+                    <Description resid="TaskpaneButton.SupertipText"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16"/>
+                    <bt:Image size="32" resid="Icon.32x32"/>
+                    <bt:Image size="80" resid="Icon.80x80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>ButtonId1</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Url"/>
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon.16x16" DefaultValue="https://mo7mdsalah77.github.io/live-lesson/addin/icon-32.png"/>
+        <bt:Image id="Icon.32x32" DefaultValue="https://mo7mdsalah77.github.io/live-lesson/addin/icon-32.png"/>
+        <bt:Image id="Icon.80x80" DefaultValue="https://mo7mdsalah77.github.io/live-lesson/addin/icon-64.png"/>
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="http://go.microsoft.com/fwlink/?LinkId=276812"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://mo7mdsalah77.github.io/live-lesson/?addin=panel"/>
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="GetStarted.Title" DefaultValue="Get started with the Live Lesson Studio add-in!"/>
+        <bt:String id="CommandsGroup.Label" DefaultValue="Live Lesson Add-in"/>
+        <bt:String id="TaskpaneButton.Label" DefaultValue="Add interaction"/>
+        <bt:String id="TaskpaneButton.SupertipTitle" DefaultValue="Live Lesson Studio"/>
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="GetStarted.Description" DefaultValue="Your sample add-in loaded successfully. Go to the HOME tab and click the 'Live Lesson Studio' button to get started."/>
+        <bt:String id="TaskpaneButton.SupertipText" DefaultValue="Open the Live Lesson Studio add-in"/>
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>

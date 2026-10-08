@@ -34,3 +34,9 @@ A Slido-style live lesson website. Teachers sign in with Google and run their le
 - One-time Google setup: Google Cloud console › APIs & Services › Credentials › the "Web client (auto created by Google Service)" OAuth client › Authorized redirect URIs › add `https://<your site>/addin/auth.html`. The add-in signs in through that page because PowerPoint blocks sign-in pop-ups. The client ID is `googleClientId` in `site/config.js`.
 - Windows: download `site/addin/manifest.xml` and `site/addin/install-on-windows.cmd` into one folder, run the .cmd, restart PowerPoint, then Insert › Add-ins › My Add-ins › Developer Add-ins › Live Lesson.
 - PowerPoint on the web: Home › Add-ins › More Add-ins › My Add-ins › Upload My Add-in › choose `manifest.xml`.
+
+### PowerPoint side panel
+
+Install `taskpane-manifest.xml` for **Live Lesson Studio**, alongside the original content add-in. The **Home → Live Lesson → Add interaction** ribbon button opens a native PowerPoint task pane. Choose an interaction type, edit and save, then use **Add to slide** to place a question card on the selected slide. **Launch** sends it to student devices. Results and Groups stay in the same pane.
+
+Question cards are editable PowerPoint text, not embedded live charts. The original content add-in still supplies charts on slides. Native card insertion needs PowerPointApi 1.4. Select exactly one slide before adding a card. Slide associations are saved with the presentation; launching is manual.

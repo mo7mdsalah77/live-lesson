@@ -931,7 +931,7 @@ function renderStudent(app) {
 
 render();
 // Used by the PowerPoint add-in (addin/addin.js).
-window.__lesson = { S, h, slides, goTo, setLive, toggleReveal, stageEl, barsEl, summaryFor, studentList, newCode, render, TYPES, editTab, startEdit, classTab, groupsTab, liveTab, joinHelp, toast };
+window.__lesson = { S, h, slides, goTo, setLive, toggleReveal, stageEl, barsEl, summaryFor, studentList, newCode, render, TYPES, editTab, startEdit, classTab, groupsTab, liveTab, joinHelp, toast, newSlide, saveDeck };
 window.__startLesson = () => boot().catch(e => { console.error(e); S.role = "nodb"; render(); });
 if (!window.HOSTED) window.__startLesson();
 })();
