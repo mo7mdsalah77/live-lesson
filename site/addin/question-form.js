@@ -1,0 +1,35 @@
+// A single-question editor for the PowerPoint side panel.
+export function questionForm(L, draft, update, save, cancel, busy) {
+  const {h} = L, sl = draft.slide, key = draft.key, type = L.TYPES[sl.type];
+  const field = (label, property, object = sl, rows = 2) => h("label", {class:"f"}, label, h("textarea", {rows,value:object[property] || "",oninput:e=>object[property]=e.target.value}));
+  const nodes = [h("h2", {text:type.label}), field(sl.type === "task" ? "Task heading" : "Your question", "title")];
+  if (sl.options) {
+    nodes.push(h("p", {class:"muted",text:type.graded ? "Write the choices and select the correct answer." : "Write the choices students can vote for."}));
+    sl.options.forEach((option,i) => nodes.push(h("div", {class:"optrow"},
+      type.graded ? h("input", {type:sl.type==="multi"?"checkbox":"radio",name:"correct",checked:sl.type==="multi"?(key.correct||[]).includes(i):key.correct===i,"aria-label":"Correct choice "+(i+1),onchange:e=>{if(sl.type==="multi")key.correct=e.target.checked?[...new Set([...(key.correct||[]),i])]:(key.correct||[]).filter(v=>v!==i);else key.correct=i;}}):null,
+      h("input",{type:"text",value:option,placeholder:"Choice "+(i+1),"aria-label":"Choice "+(i+1),oninput:e=>sl.options[i]=e.target.value}),
+      h("button",{class:"btn sm",disabled:sl.options.length<=2,"aria-label":"Remove choice "+(i+1),onclick:()=>{sl.options.splice(i,1);if(Array.isArray(key.correct))key.correct=key.correct.filter(v=>v!==i).map(v=>v>i?v-1:v);else if(key.correct===i)delete key.correct;else if(key.correct>i)key.correct--;update();}},"×"))));
+    if(sl.options.length<8)nodes.push(h("button",{class:"btn sm",onclick:()=>{sl.options.push("");update();}},"+ Add choice"));
+  }
+  if(sl.type==="tf")nodes.push(h("div",{class:"row"},[true,false].map(v=>h("label",{class:"row"},h("input",{type:"radio",name:"tf",checked:key.correct===v,onchange:()=>key.correct=v}),v?"True":"False"))));
+  if(sl.type==="number")nodes.push(h("label",{class:"f"},"Correct number",h("input",{type:"number",step:"any",value:key.correct??"",oninput:e=>key.correct=e.target.value===""?undefined:Number(e.target.value)})),h("label",{class:"f"},"Allow ±",h("input",{type:"number",step:"any",min:0,value:key.tol||0,oninput:e=>key.tol=Math.max(0,Number(e.target.value)||0)})));
+  if(sl.type==="short")nodes.push(h("label",{class:"f"},"Accepted answers (one per line)",h("textarea",{rows:3,value:(key.accept||[]).join("\n"),oninput:e=>key.accept=e.target.value.split("\n").map(v=>v.trim()).filter(Boolean)})));
+  if(sl.type==="scale")nodes.push(field("Label for 1","low"),field("Label for 5","high"));
+  if(sl.type==="task")for(let i=0;i<3;i++)nodes.push(h("label",{class:"f"},"Task for "+L.S.live.tierNames[i],h("textarea",{rows:3,value:sl.tasks[i],oninput:e=>sl.tasks[i]=e.target.value})));
+  const advanced=h("details",{class:"lladvanced"},h("summary",{text:"Teaching options"}),field("Supporting text","body"),field("Code (optional)","code",sl,3),field("Private teacher notes","notes",key,3));
+  if(type.graded)advanced.append(field("Explanation after revealing the answer","explain",key),h("label",{class:"f"},"Points",h("input",{type:"number",min:1,max:10,value:sl.points||1,oninput:e=>sl.points=Math.max(1,Math.min(10,Number(e.target.value)||1))})),
+    h("label",{class:"row"},h("input",{type:"checkbox",checked:sl.group!==false,onchange:e=>sl.group=e.target.checked}),"Counts towards groups"),h("label",{class:"row"},h("input",{type:"checkbox",checked:!!sl.hinge,onchange:e=>sl.hinge=e.target.checked}),"Hinge: wrong answer → support group"));
+  nodes.push(advanced,h("div",{class:"row"},h("button",{class:"btn primary",disabled:busy,onclick:save},busy?"Adding…":draft.isNew?"Add to presentation":"Save question"),h("button",{class:"btn",disabled:busy,onclick:cancel},"Cancel")));
+  return nodes;
+}
+export function validateQuestion(draft) {
+  const {slide:sl,key}=draft;
+  if(!sl.title.trim())return "Write your question first.";
+  if(sl.options?.some(v=>!v.trim()))return "Write every choice or remove the empty ones.";
+  if(["mcq","tf"].includes(sl.type)&&key.correct==null)return "Select the correct answer.";
+  if(sl.type==="multi"&&!(key.correct||[]).length)return "Select at least one correct answer.";
+  if(sl.type==="number"&&(key.correct==null||!Number.isFinite(key.correct)))return "Enter the correct number.";
+  if(sl.type==="short"&&!(key.accept||[]).length)return "Enter at least one accepted answer.";
+  if(sl.type==="task"&&sl.tasks.some(v=>!v.trim()))return "Write a task for each group.";
+  return "";
+}

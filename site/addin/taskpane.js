@@ -1,6 +1,9 @@
 import { init as initOffice, signIn } from "./addin.js";
+import { insertInteraction } from "./insert-interaction.js";
+import { questionForm, validateQuestion } from "./question-form.js";
 export { signIn };
 let page = "list", force = false, selected = null, busy = false;
+let draft = null;
 const MAP = "liveLessonInteractions";
 export async function init() {
   await initOffice();
@@ -26,43 +29,55 @@ function navigate(next) {
   page = next;
   const L = window.__lesson;
   L.S.tab = next === "edit" ? "edit" : next === "groups" || next === "class" ? next : "live";
-  if (next === "edit" && !L.S.edit) L.startEdit();
   redraw();
 }
+const clone = value => JSON.parse(JSON.stringify(value));
 function create(type) {
   const L = window.__lesson;
-  if (!L.S.edit) L.startEdit();
-  L.S.edit.deck.slides.push(L.newSlide(type));
-  L.S.editIdx = L.S.edit.deck.slides.length - 1;
+  draft = { slide: L.newSlide(type), key: {}, isNew: true };
+  if (type === "multi") draft.key.correct = [];
   navigate("edit");
+}
+function edit(slide) {
+  draft = { slide: clone(slide), key: clone(window.__lesson.S.keys[slide.id] || {}), isNew: false };
+  navigate("edit");
+}
+async function saveQuestion() {
+  const L = window.__lesson;
+  if (busy || !draft) return;
+  const problem = validateQuestion(draft);
+  if (problem) { L.toast(problem); return; }
+  busy = true; redraw();
+  try {
+    const deck = clone(L.S.deck || { title: "My interactions", slides: [] });
+    const index = deck.slides.findIndex(slide => slide.id === draft.slide.id);
+    if (index < 0) deck.slides.push(clone(draft.slide)); else deck.slides[index] = clone(draft.slide);
+    const keys = { ...clone(L.S.keys), [draft.slide.id]: clone(draft.key) };
+    await L.S.db.doc("keys/main").set({ keys });
+    await L.S.db.doc("deck/main").set(deck);
+    L.S.deck = deck; L.S.keys = keys;
+    if (draft.isNew && !draft.nativeId) draft.nativeId = await insertInteraction(draft.slide);
+    if (draft.nativeId) await rememberSlide(draft.nativeId, draft.slide.id);
+    L.toast(draft.isNew ? "Interaction slide added to PowerPoint." : "Question updated.");
+    draft = null; navigate("list");
+  } catch (e) { L.toast(e.message || "Could not save the interaction. Your draft is still here."); }
+  finally { busy = false; redraw(); }
+}
+async function rememberSlide(slideId, questionId) {
+  const settings = Office.context.document.settings;
+  settings.set(MAP, { ...(settings.get(MAP) || {}), [slideId]: questionId });
+  await new Promise((resolve, reject) => settings.saveAsync(r => r.status === "succeeded" ? resolve() : reject(new Error("The interaction slide exists, but its sidebar link could not be saved. Try Save again."))));
+  selected = slideId;
 }
 async function attach(slide) {
   const L = window.__lesson;
   if (busy) return;
-  if (!globalThis.PowerPoint || !Office.context.requirements.isSetSupported("PowerPointApi", "1.5")) {
-    L.toast("Adding a question card needs a newer PowerPoint version."); return;
-  }
   busy = true; redraw();
   try {
-    let slideId;
-    await PowerPoint.run(async context => {
-      const chosen = context.presentation.getSelectedSlides(); chosen.load("items/id"); await context.sync();
-      if (chosen.items.length !== 1) throw new Error("Select one PowerPoint slide first.");
-      const target = chosen.items[0]; slideId = target.id;
-      const shapes = target.shapes; shapes.load("items/name"); await context.sync();
-      for (const shape of shapes.items) if (shape.name === "Live Lesson interaction") shape.delete();
-      const text = [slide.title || L.TYPES[slide.type].label, ...(slide.options || []).map((v, i) => `${i + 1}. ${v}`), "", `Join: ${location.host}${location.pathname}   Code: ${L.S.live.code || "Create a join code"}`].join("\n");
-      const card = shapes.addTextBox(text, { left: 35, top: 65, width: 620, height: 350 });
-      card.name = "Live Lesson interaction";
-      await context.sync();
-    });
-    const settings = Office.context.document.settings;
-    const map = { ...(settings.get(MAP) || {}), [slideId]: slide.id };
-    settings.set(MAP, map);
-    await new Promise((resolve, reject) => settings.saveAsync(r => r.status === "succeeded" ? resolve() : reject(new Error("The question card was added, but its link could not be saved. Try adding it again."))));
-    selected = slideId;
-    L.toast("Interaction added. Use Launch to send it to students.");
-  } catch (e) { L.toast(e.message || "Could not add the interaction. Try again."); }
+    const id = await insertInteraction(slide);
+    await rememberSlide(id, slide.id);
+    L.toast("New interaction slide added to PowerPoint.");
+  } catch (e) { L.toast(e.message || "Could not add the interaction slide."); }
   finally { busy = false; redraw(); }
 }
 export function render(app) {
@@ -78,7 +93,7 @@ export function render(app) {
     body.append(h("button", { class: "btn sm", onclick: () => navigate("list") }, "← Interactions"), h("h2", { text: "Add an interaction" }), h("p", { class: "muted", text: "Choose how students participate." }),
       h("div", { class: "lltypes" }, [["poll","Poll","Collect opinions with choices"],["mcq","Quiz","Check understanding and score answers"],["multi","Select all","Allow several correct choices"],["tf","True or false","A quick understanding check"],["scale","Rating","Confidence from 1 to 5"],["open","Open response","Collect students’ written answers"],["number","Number","Accept a number with tolerance"],["short","Short answer","Mark accepted written answers"],["task","Group tasks","Different tasks for each learning group"]].map(([type,title,detail]) => h("button", { class: "lltype", onclick: () => create(type) }, h("b", { text: title }), h("span", { text: detail })))));
   } else if (page === "edit") {
-    body.append(h("button", { class: "btn sm", onclick: () => navigate("list") }, "← Interactions"), ...L.editTab().filter(Boolean));
+    body.append(...questionForm(L, draft, redraw, saveQuestion, () => { draft = null; navigate("list"); }, busy));
   } else if (page === "class" || page === "groups") {
     body.append(...(page === "class" ? L.classTab() : L.groupsTab()).filter(Boolean));
   } else {
@@ -87,11 +102,11 @@ export function render(app) {
       S.live.code ? h("div", { class: "note", text: "Student join code: " + S.live.code }) : h("button", { class: "btn", onclick: () => L.setLive({ code: L.newCode() }) }, "Create join code"));
     if (linked) body.append(h("div", { class: "note" }, h("b", { text: "Selected slide: " }), linked.title,
       h("button", { class: "btn primary sm", onclick: () => launch(linked) }, "Launch interaction")));
-    if (!list.length) body.append(h("p", { class: "muted", text: "Add your first interaction, write its question, and save it. Then add it to the selected PowerPoint slide." }));
+    if (!list.length) body.append(h("p", { class: "muted", text: "Choose an interaction, write your question, and click Add to presentation. A new live slide is inserted after your current slide." }));
     list.forEach((s, i) => body.append(h("article", { class: "llcard" }, h("span", { class: "eyebrow", text: `${i + 1} · ${L.TYPES[s.type].label}` }), h("b", { text: s.title || "Untitled interaction" }),
-      h("div", { class: "row" }, h("button", { class: "btn sm", disabled: busy, onclick: () => attach(s) }, busy ? "Adding…" : "Add to slide"), h("button", { class: "btn primary sm", onclick: () => launch(s) }, "Launch"), h("button", { class: "btn sm", onclick: () => { if (!S.edit) L.startEdit(); S.editIdx = S.edit.deck.slides.findIndex(x => x.id === s.id); navigate("edit"); } }, "Edit")))));
+      h("div", { class: "row" }, h("button", { class: "btn sm", disabled: busy, onclick: () => attach(s) }, busy ? "Adding…" : "Add to presentation"), h("button", { class: "btn primary sm", onclick: () => launch(s) }, "Launch"), h("button", { class: "btn sm", onclick: () => edit(s) }, "Edit")))));
     if (list.length) body.append(h("h3", { text: "Live interaction" }), ...L.liveTab().filter(Boolean), h("div", { class: "row" }, h("button", { class: "btn sm", onclick: () => L.setLive({ open: !S.live.open }) }, S.live.open ? "Close answers" : "Reopen answers"), h("button", { class: "btn sm", onclick: L.toggleReveal }, S.live.reveal ? "Hide answer" : "Show answer")));
-    body.append(h("p", { class: "muted small", text: "Question cards use PowerPoint text. For live charts on the slide, insert the Live Lesson content add-in. Launch sends the question to students." }));
+    body.append(h("p", { class: "muted small", text: "Each interaction is its own live PowerPoint slide. Use the side panel for your results and groups." }));
   }
   app.append(h("div", { class: "llpanel" }, header, nav, body));
 }
@@ -102,5 +117,5 @@ const CSS = `
 .llbody{overflow:auto;padding:14px;display:flex;flex-direction:column;gap:14px;min-width:0}
 .llbody h2,.llbody h3{margin:0}.llcard{padding:14px;border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
 .lltypes{display:grid;gap:9px}.lltype{font:inherit;text-align:left;cursor:pointer;border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;gap:5px}.lltype:hover{border-color:var(--accent)}.lltype span{font-size:13px;color:var(--muted)}
-.llbody .ed,.llbody .gcols{grid-template-columns:1fr}.llbody .elist{max-height:140px;overflow:auto}.llbody .import{display:none}.llbody .tblwrap{max-width:100%;overflow:auto}.llbody .stat{flex-wrap:wrap}
+.lladvanced{display:grid;gap:12px}.lladvanced summary{cursor:pointer;font-weight:700;padding:10px 0}.llbody .ed,.llbody .gcols{grid-template-columns:1fr}.llbody .elist{max-height:140px;overflow:auto}.llbody .import{display:none}.llbody .tblwrap{max-width:100%;overflow:auto}.llbody .stat{flex-wrap:wrap}
 `;

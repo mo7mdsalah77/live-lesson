@@ -37,6 +37,13 @@ A Slido-style live lesson website. Teachers sign in with Google and run their le
 
 ### PowerPoint side panel
 
-Install `taskpane-manifest.xml` for **Live Lesson Studio**, alongside the original content add-in. The **Home → Live Lesson → Add interaction** ribbon button opens a native PowerPoint task pane. Choose an interaction type, edit and save, then use **Add to slide** to place a question card on the selected slide. **Launch** sends it to student devices. Results and Groups stay in the same pane.
+Install `taskpane-manifest.xml` for **Live Lesson Studio**, alongside the original content add-in. The **Home → Live Lesson → Add interaction** ribbon button opens a native PowerPoint task pane.
 
-Question cards are editable PowerPoint text, not embedded live charts. The original content add-in still supplies charts on slides. Native card insertion needs PowerPointApi 1.5. Select exactly one slide before adding a card. Slide associations are saved with the presentation; launching is manual.
+1. Choose an interaction type.
+2. Write the question and its choices. Teaching options retain points, explanations, private notes, grouping and hinge rules. Group tasks retain a task for each tier.
+3. Click **Add to presentation**. A new live interaction slide is inserted after the selected PowerPoint slide. No PDF import or second deck editor is involved.
+4. Edit the question in the sidebar; its existing live slides read the updated question.
+
+Insertion uses a one-slide PPTX template containing the original Live Lesson content add-in, with an independent question setting and unique web-extension instance ID. It requires PowerPointApi 1.5 and the content manifest installed on the presenting computer. Question data and private answer keys stay in Firebase; the PPTX holds only the question reference and a preview without answers. Results and Groups stay in the pane. Automatic slideshow activation still needs verification in real PowerPoint; Launch remains available as a fallback.
+
+Tests: `node --test tests/*.test.cjs`.

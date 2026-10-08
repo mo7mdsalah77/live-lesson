@@ -6,6 +6,7 @@ import { signInWithCredential, OAuthProvider, GoogleAuthProvider } from "https:/
 const OFFICE_JS = "https://appsforoffice.microsoft.com/lib/1/hosted/office.js";
 const KEY = "liveLesson"; // document setting: { mode: "follow" } or { mode: "slide", id: <lesson slide id> }
 
+let managed = false;
 let inOffice = false;
 let view = "edit"; // "edit" while building the deck, "read" while presenting
 let cfg = null;
@@ -31,6 +32,9 @@ export async function init() {
   } catch (e) { console.warn("Office.js didn't load", e); }
   if (inOffice) {
     cfg = Office.context.document.settings.get(KEY) || null;
+    if (typeof cfg === "string") { try { cfg = JSON.parse(cfg); } catch { cfg = null; } }
+    const managedSetting = Office.context.document.settings.get("liveLessonManaged");
+    managed = managedSetting === true || managedSetting === "true";
     Office.context.document.getActiveViewAsync(r => { if (r.status === "succeeded") { view = r.value; rerender(); } });
     Office.context.document.addHandlerAsync(Office.EventType.ActiveViewChanged, e => { view = e.activeView; synced = false; rerender(); });
   } else {
@@ -109,7 +113,7 @@ export function render(app) {
 
   const isLive = idx === live;
   const sl = idx >= 0 ? list[idx] : null;
-  const editing = view !== "read";
+  const editing = view !== "read" && !managed;
   const n = S.peers.filter(p => !p.isMe && (p.presence || {}).role === "student" && p.presence.sid === S.live.sessionId).length;
 
   const bar = h("div", { class: "ebar" },
