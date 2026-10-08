@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Live Lesson sign-in</title>
+<script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+<style>
+body{margin:0;font:16px/1.5 "Segoe UI",system-ui,sans-serif;background:#F3F5F9;color:#16213A;display:grid;place-items:center;min-height:100vh}
+main{max-width:360px;padding:24px;text-align:center}
+h1{font-size:20px;margin:0 0 8px}
+p{color:#5A6580;margin:0 0 16px}
+button{border:0;border-radius:8px;padding:10px 16px;font-weight:700;font-size:15px;font-family:inherit;background:#0B7A84;color:#fff;cursor:pointer}
+</style>
+</head>
+<body>
+<main>
+  <h1 id="t">Signing you in</h1>
+  <p id="m">Opening Google sign-in…</p>
+  <button id="again" hidden>Try again</button>
+</main>
+<script type="module">
+// Sign-in window for the PowerPoint add-in. Signs in with Google directly (no pop-ups, which PowerPoint blocks),
+// then passes the Google ID token back to the add-in with Office's messageParent.
+import { googleClientId } from "../config.js";
+
+const $ = id => document.getElementById(id);
+const hex = buf => Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, "0")).join("");
+const rand = () => hex(crypto.getRandomValues(new Uint8Array(24)));
+const ss = { get: k => { try { return sessionStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { sessionStorage.setItem(k, v); } catch {} } };
+const send = o => Office.onReady().then(() => Office.context.ui.messageParent(JSON.stringify(o)));
+const show = (t, m, retry) => { $("t").textContent = t; $("m").textContent = m; $("again").hidden = !retry; };
+
+async function go() {
+  const raw = rand(), state = rand();
+  ss.set("tll-nonce", raw); ss.set("tll-state", state);
+  const nonce = hex(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw)));
+  const q = new URLSearchParams({
+    client_id: googleClientId, redirect_uri: location.origin + location.pathname, response_type: "id_token",
+    scope: "openid email profile", nonce, state, prompt: "select_account",
+  });
+  location.replace("https://accounts.google.com/o/oauth2/v2/auth?" + q);
+}
+$("again").onclick = go;
+
+const back = new URLSearchParams(location.hash.slice(1));
+if (back.get("id_token")) {
+  if (back.get("state") !== ss.get("tll-state")) { show("Sign-in didn't finish", "Please try again.", true); }
+  else { show("Signed in", "You can close this window."); send({ idToken: back.get("id_token"), rawNonce: ss.get("tll-nonce") }); }
+} else if (back.get("error")) {
+  show("Sign-in didn't finish", back.get("error"), true);
+  send({ error: "Google sign-in: " + back.get("error") });
+} else {
+  go();
+}
+</script>
+</body>
+</html>

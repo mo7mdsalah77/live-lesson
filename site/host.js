@@ -24,7 +24,10 @@ if (!firebaseConfig.apiKey || firebaseConfig.apiKey.startsWith("PASTE")) {
 const fb = initializeApp(firebaseConfig);
 const auth = getAuth(fb);
 const fs = getFirestore(fb);
-const teacherMode = location.hash === "#teacher";
+// Opened as ?addin: running inside PowerPoint as the Live Lesson add-in (teacher only).
+const addin = new URLSearchParams(location.search).has("addin") ? await import("./addin/addin.js") : null;
+if (addin) { await addin.init(); window.EMBED = addin; }
+const teacherMode = !!addin || location.hash === "#teacher";
 
 function shim(space, isTeacher, user) {
   const P = p => "spaces/" + space + "/" + p;
@@ -90,8 +93,8 @@ function teacherGate() {
   const err = el("p", { class: "fb no", style: "margin:0" }); err.hidden = true;
   screen(el("span", { class: "eyebrow", text: "Teacher" }), el("h2", { text: "Sign in to run your lesson" }),
     el("p", { class: "muted", style: "margin:0", text: "Your lessons, answer keys and class results are kept under your account. Students never need an account." }),
-    el("button", { class: "btn primary", onclick: () => signInWithPopup(auth, new GoogleAuthProvider()).catch(e => { err.textContent = "Sign-in didn't finish: " + (e.code || e.message); err.hidden = false; }) }, "Sign in with Google"), err,
-    el("a", { href: "./", text: "I'm a student" }));
+    el("button", { class: "btn primary", onclick: () => (addin ? addin.signIn(auth) : signInWithPopup(auth, new GoogleAuthProvider())).catch(e => { err.textContent = "Sign-in didn't finish: " + (e.code || e.message); err.hidden = false; }) }, "Sign in with Google"), err,
+    addin ? el("p", { class: "muted", style: "margin:0;font-size:14px", text: "Use the same Google account as on the website." }) : el("a", { href: "./", text: "I'm a student" }));
 }
 
 function studentGate(user) {

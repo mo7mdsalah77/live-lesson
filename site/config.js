@@ -8,3 +8,6 @@ export const firebaseConfig = {
   messagingSenderId: "1008154300366",
   appId: "1:1008154300366:web:82a7b6f059c089870fa59f",
 };
+
+// Google sign-in client for the PowerPoint add-in (Firebase console › Authentication › Sign-in method › Google › Web client ID).
+export const googleClientId = "1008154300366-j5gnj6d4ne8fqe07moikl66dd7ivt801.apps.googleusercontent.com";

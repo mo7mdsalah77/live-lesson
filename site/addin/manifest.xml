@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Live Lesson add-in for PowerPoint. Load it with install-on-windows.cmd, or in PowerPoint on the web
+     with Home › Add-ins › More Add-ins › My Add-ins › Upload My Add-in. -->
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:type="ContentApp">
+  <Id>aae5001e-6872-4edb-aea5-1351ae3b275d</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>Live Lesson</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="Live Lesson"/>
+  <Description DefaultValue="Put live lesson questions on your slides. Students answer on their own devices and you see the class's answers on the slide."/>
+  <IconUrl DefaultValue="https://mo7mdsalah77.github.io/live-lesson/addin/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://mo7mdsalah77.github.io/live-lesson/addin/icon-64.png"/>
+  <SupportUrl DefaultValue="https://github.com/mo7mdsalah77/live-lesson"/>
+  <AppDomains>
+    <AppDomain>https://accounts.google.com</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Presentation"/>
+  </Hosts>
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://mo7mdsalah77.github.io/live-lesson/?addin=1"/>
+    <RequestedWidth>960</RequestedWidth>
+    <RequestedHeight>540</RequestedHeight>
+  </DefaultSettings>
+  <Permissions>ReadWriteDocument</Permissions>
+  <AllowSnapshot>true</AllowSnapshot>
+</OfficeApp>
