@@ -10,6 +10,8 @@ let inOffice = false;
 let view = "edit"; // "edit" while building the deck, "read" while presenting
 let cfg = null;
 let picking = false;
+let workspace = "present";
+let refreshing = false;
 let synced = false, syncT = 0;
 
 const lsGet = k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
@@ -41,7 +43,7 @@ function saveCfg(next) {
   cfg = next;
   if (!inOffice) return lsSet("tll-addin-cfg", next);
   Office.context.document.settings.set(KEY, next);
-  Office.context.document.settings.saveAsync(r => { if (r.status !== "succeeded") console.warn("setting not saved", r.error); });
+  Office.context.document.settings.saveAsync(r => { if (r.status !== "succeeded") { console.warn("setting not saved", r.error); window.__lesson?.toast("PowerPoint could not save the slide link. Save the presentation and try again."); } });
 }
 
 // Google sign-in through an Office dialog (pop-ups don't work inside PowerPoint). The dialog page (auth.html)
@@ -68,7 +70,20 @@ export function signIn(auth) {
   });
 }
 
-function rerender() { if (window.__lesson && window.__lesson.S.role === "teacher") window.__lesson.render(true); }
+export function keepEditor() {
+  return !refreshing && view !== "read" && workspace === "edit" && !!document.querySelector(".emb #pbody");
+}
+function rerender() {
+  refreshing = true;
+  try { if (window.__lesson && window.__lesson.S.role === "teacher") window.__lesson.render(true); }
+  finally { refreshing = false; }
+}
+function openWorkspace(name) {
+  workspace = name;
+  window.__lesson.S.tab = name === "present" || name === "join" ? "live" : name;
+  if (name === "edit" && !window.__lesson.S.edit) window.__lesson.startEdit();
+  rerender();
+}
 
 // While presenting, showing this PowerPoint slide moves students' devices to the lesson slide it holds.
 function maybeSync(L, idx) {
@@ -103,25 +118,36 @@ export function render(app) {
       : h("button", { class: "btn sm", onclick: () => L.setLive({ code: L.newCode() }) }, "Create join code"),
     h("span", { class: "pill" }, h("span", { class: "dot" + (S.connected ? " live" : "") }), n + " online"),
     h("span", { class: "grow" }),
-    editing ? h("button", { class: "btn sm" + (picking ? " on" : ""), onclick: () => { picking = !picking; rerender(); } }, picking ? "Done" : "Choose slide") : null,
+    editing ? h("button", { class: "btn sm" + (picking ? " on" : ""), onclick: () => { workspace = "present"; picking = !picking; rerender(); } }, picking ? "Done" : "Link this slide") : null,
     editing && window.__signOut ? h("button", { class: "btn sm", onclick: () => window.__signOut() }, "Sign out") : null);
 
+  const tabs = editing ? h("nav", { class: "enav", "aria-label": "Lesson workspace" },
+    [["present", "Present"], ["edit", "Questions"], ["class", "Results"], ["groups", "Groups"], ["join", "Invite students"]].map(([key, title]) =>
+      h("button", { class: "btn sm" + (workspace === key ? " on" : ""), "aria-pressed": workspace === key, onclick: () => openWorkspace(key) }, title))) : null;
+  const shell = body => app.append(h("div", { class: "emb" + (editing ? " eediting" : "") }, bar, tabs, body));
+  if (editing && workspace !== "present") {
+    const content = workspace === "join" ? [h("h2", { text: "Invite your class" }), L.joinHelp(),
+      h("p", { class: "muted", text: "Students use their phones. Keep this PowerPoint add-in open to run the lesson." })]
+      : ({ edit: L.editTab, class: L.classTab, groups: L.groupsTab }[workspace])();
+    shell(h("section", { class: "ework", id: "pbody" }, content));
+    return;
+  }
   if (!list.length) {
-    app.append(h("div", { class: "emb" }, bar, h("div", { class: "stage" }, h("h2", { text: "No lesson yet" }),
-      h("p", { class: "muted", text: "Write your lesson on the website first (Teacher view › Edit lesson), then come back to this slide." }),
-      h("a", { href: location.origin + location.pathname + "#teacher", target: "_blank", rel: "noopener", text: "Open the teacher page" }))));
+    shell(h("div", { class: "stage" }, h("h2", { text: "Build your interactive lesson" }),
+      h("p", { class: "muted", text: "Create polls, quizzes and group tasks here in PowerPoint, then link a question to this slide." }),
+      h("button", { class: "btn primary", onclick: () => openWorkspace("edit") }, "Create a question")));
     return;
   }
 
   if (picking || !cfg || (fixed && idx < 0)) {
     const pick = c => { saveCfg(c); picking = false; synced = false; rerender(); };
-    app.append(h("div", { class: "emb" }, bar, h("div", { class: "stage pick" },
+    shell(h("div", { class: "stage pick" },
       h("h2", { text: "What should this PowerPoint slide show?" }),
       fixed && idx < 0 ? h("p", { class: "fb no", text: "The lesson slide this was set to has been deleted. Pick another." }) : null,
       h("p", { class: "muted", text: "Pick one lesson slide: when you reach this PowerPoint slide in your slideshow, students' devices move to it. Or let this slide follow the live lesson and step through it with Back and Next." }),
       h("div", { class: "plist" },
         h("button", { class: "btn" + (cfg && cfg.mode === "follow" ? " on" : ""), onclick: () => pick({ mode: "follow" }) }, "Follow the live lesson (Back and Next on this slide)"),
-        list.map((s, i) => h("button", { class: "btn" + (fixed && cfg.id === s.id ? " on" : ""), onclick: () => pick({ mode: "slide", id: s.id }) }, label(L, s, i)))))));
+        list.map((s, i) => h("button", { class: "btn" + (fixed && cfg.id === s.id ? " on" : ""), onclick: () => pick({ mode: "slide", id: s.id }) }, label(L, s, i))))));
     return;
   }
 
@@ -144,13 +170,22 @@ export function render(app) {
       sl && L.TYPES[sl.type].graded ? h("button", { class: "btn" + (S.live.reveal ? " on" : ""), onclick: L.toggleReveal }, S.live.reveal ? "Hide answer" : "Show answer") : null));
   }
   if (editing) side.append(h("p", { class: "muted small", text: fixed ? "This slide holds lesson slide " + (idx + 1) + ". In the slideshow, reaching it moves students there." : "This slide follows the live lesson." }));
-  app.append(h("div", { class: "emb" }, bar, h("div", { class: "emain" }, L.stageEl(sl, { showKey: isLive && S.live.reveal }), side)));
+  if (isLive && sl?.type === "open") {
+    const replies = students.filter(s => s.ans[sl.id] != null && s.ans[sl.id] !== "");
+    side.append(h("div", { class: "resp" }, replies.map(s => h("div", null, h("b", { text: s.name }), String(s.ans[sl.id])))));
+  }
+  shell(h("div", { class: "emain" }, L.stageEl(sl, { showKey: isLive && S.live.reveal }), side));
 }
 
 const CSS = `
 .wrap{max-width:none;padding:0}
 body{background:var(--paper)}
 .emb{position:fixed;inset:0;display:grid;grid-template-rows:auto minmax(0,1fr);gap:8px;padding:8px;box-sizing:border-box}
+.eediting{grid-template-rows:auto auto minmax(0,1fr)}
+.enav{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:8px}
+.ework{overflow:auto;min-height:0;padding:16px;display:flex;flex-direction:column;gap:14px;background:var(--paper);border-radius:12px}
+.ework .ed{grid-template-columns:minmax(130px,1fr) minmax(0,3fr)}
+.ework .import{font-size:13px}
 .ebar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .ebrand{font:800 15px var(--f-display)}
 .grow{flex:1}
@@ -161,5 +196,5 @@ body{background:var(--paper)}
 .small{font-size:13px;margin:0}
 .pick .plist{display:grid;gap:6px}
 .pick .plist .btn{justify-content:flex-start;text-align:left}
-@media (max-width:560px){.emain{grid-template-columns:1fr}}
+@media (max-width:560px){.emain{grid-template-columns:1fr}.ework{padding:10px}.ework .ed,.ework .gcols{grid-template-columns:1fr}}
 `;

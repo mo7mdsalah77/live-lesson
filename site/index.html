@@ -489,6 +489,7 @@ function renderStudentIfChanged() {
 
 /* ---------- rendering ---------- */
 function render(full) {
+  if (window.EMBED && window.EMBED.keepEditor && window.EMBED.keepEditor()) return;
   if (!full && S.role === "teacher" && !S.preview && S.tab === "edit" && $("#tleft")) return refreshTeacher();
   const app = $("#app"); const keepScroll = window.scrollY;
   app.replaceChildren();
@@ -579,7 +580,7 @@ function leftParts() {
 }
 function renderTeacherLive() {
   if (S.role !== "teacher" || S.preview) return;
-  if (window.EMBED) return render(true);
+  if (window.EMBED) return render();
   const pill = $(".top .pill"); if (pill) pill.replaceWith(connPill());
   if (S.tab !== "edit") fillPanel();
   if (S.present) { const p = $(".present"); if (p) p.replaceWith(presentEl()); }
@@ -930,7 +931,7 @@ function renderStudent(app) {
 
 render();
 // Used by the PowerPoint add-in (addin/addin.js).
-window.__lesson = { S, h, slides, goTo, setLive, toggleReveal, stageEl, barsEl, summaryFor, studentList, newCode, render, TYPES };
+window.__lesson = { S, h, slides, goTo, setLive, toggleReveal, stageEl, barsEl, summaryFor, studentList, newCode, render, TYPES, editTab, startEdit, classTab, groupsTab, liveTab, joinHelp, toast };
 window.__startLesson = () => boot().catch(e => { console.error(e); S.role = "nodb"; render(); });
 if (!window.HOSTED) window.__startLesson();
 })();
