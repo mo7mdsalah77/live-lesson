@@ -39,4 +39,4 @@ A Slido-style live lesson website. Teachers sign in with Google and run their le
 
 Install `taskpane-manifest.xml` for **Live Lesson Studio**, alongside the original content add-in. The **Home → Live Lesson → Add interaction** ribbon button opens a native PowerPoint task pane. Choose an interaction type, edit and save, then use **Add to slide** to place a question card on the selected slide. **Launch** sends it to student devices. Results and Groups stay in the same pane.
 
-Question cards are editable PowerPoint text, not embedded live charts. The original content add-in still supplies charts on slides. Native card insertion needs PowerPointApi 1.4. Select exactly one slide before adding a card. Slide associations are saved with the presentation; launching is manual.
+Question cards are editable PowerPoint text, not embedded live charts. The original content add-in still supplies charts on slides. Native card insertion needs PowerPointApi 1.5. Select exactly one slide before adding a card. Slide associations are saved with the presentation; launching is manual.

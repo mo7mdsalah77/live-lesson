@@ -39,7 +39,7 @@ function create(type) {
 async function attach(slide) {
   const L = window.__lesson;
   if (busy) return;
-  if (!globalThis.PowerPoint || !Office.context.requirements.isSetSupported("PowerPointApi", "1.4")) {
+  if (!globalThis.PowerPoint || !Office.context.requirements.isSetSupported("PowerPointApi", "1.5")) {
     L.toast("Adding a question card needs a newer PowerPoint version."); return;
   }
   busy = true; redraw();
