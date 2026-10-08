@@ -13,11 +13,15 @@ export function questionForm(L, draft, update, save, cancel, busy) {
   }
   if(sl.type==="tf")nodes.push(h("div",{class:"row"},[true,false].map(v=>h("label",{class:"row"},h("input",{type:"radio",name:"tf",checked:key.correct===v,onchange:()=>key.correct=v}),v?"True":"False"))));
   if(sl.type==="number")nodes.push(h("label",{class:"f"},"Correct number",h("input",{type:"number",step:"any",value:key.correct??"",oninput:e=>key.correct=e.target.value===""?undefined:Number(e.target.value)})),h("label",{class:"f"},"Allow ±",h("input",{type:"number",step:"any",min:0,value:key.tol||0,oninput:e=>key.tol=Math.max(0,Number(e.target.value)||0)})));
-  if(sl.type==="short")nodes.push(h("label",{class:"f"},"Accepted answers (one per line)",h("textarea",{rows:3,value:(key.accept||[]).join("\n"),oninput:e=>key.accept=e.target.value.split("\n").map(v=>v.trim()).filter(Boolean)})));
+  if(sl.type==="short")nodes.push(h("label",{class:"row"},h("input",{type:"checkbox",checked:sl.graded===true,onchange:e=>{sl.graded=e.target.checked;if(!sl.graded)delete key.accept;update();}}),"Mark against accepted answers (optional)"));
+  if(sl.type==="short" && sl.graded===true)nodes.push(h("label",{class:"f"},"Accepted answers (one per line)",h("textarea",{rows:3,value:(key.accept||[]).join("\n"),oninput:e=>key.accept=e.target.value.split("\n").map(v=>v.trim()).filter(Boolean)})));
   if(sl.type==="scale")nodes.push(field("Label for 1","low"),field("Label for 5","high"));
   if(sl.type==="task")for(let i=0;i<3;i++)nodes.push(h("label",{class:"f"},"Task for "+L.S.live.tierNames[i],h("textarea",{rows:3,value:sl.tasks[i],oninput:e=>sl.tasks[i]=e.target.value})));
+  nodes.push(h("label",{class:"f"},"Show class results on the slide",h("select",{value:sl.resultsMode||"click",onchange:e=>sl.resultsMode=e.target.value},
+    h("option",{value:"click",text:"On click"}),h("option",{value:"immediate",text:"Immediately"}),h("option",{value:"hidden",text:"Keep hidden"}))),
+    h("label",{class:"f"},"Answer timer (seconds · 0 = no timer)",h("input",{type:"number",min:0,max:3600,step:1,value:sl.timerSeconds||0,oninput:e=>sl.timerSeconds=Math.max(0,Math.min(3600,Math.floor(Number(e.target.value)||0)))})));
   const advanced=h("details",{class:"lladvanced"},h("summary",{text:"Teaching options"}),field("Supporting text","body"),field("Code (optional)","code",sl,3),field("Private teacher notes","notes",key,3));
-  if(type.graded)advanced.append(field("Explanation after revealing the answer","explain",key),h("label",{class:"f"},"Points",h("input",{type:"number",min:1,max:10,value:sl.points||1,oninput:e=>sl.points=Math.max(1,Math.min(10,Number(e.target.value)||1))})),
+  if(type.graded && sl.graded!==false)advanced.append(field("Explanation after revealing the answer","explain",key),h("label",{class:"f"},"Points",h("input",{type:"number",min:1,max:10,value:sl.points||1,oninput:e=>sl.points=Math.max(1,Math.min(10,Number(e.target.value)||1))})),
     h("label",{class:"row"},h("input",{type:"checkbox",checked:sl.group!==false,onchange:e=>sl.group=e.target.checked}),"Counts towards groups"),h("label",{class:"row"},h("input",{type:"checkbox",checked:!!sl.hinge,onchange:e=>sl.hinge=e.target.checked}),"Hinge: wrong answer → support group"));
   nodes.push(advanced,h("div",{class:"row"},h("button",{class:"btn primary",disabled:busy,onclick:save},busy?"Adding…":draft.isNew?"Add to presentation":"Save question"),h("button",{class:"btn",disabled:busy,onclick:cancel},"Cancel")));
   return nodes;
@@ -29,7 +33,7 @@ export function validateQuestion(draft) {
   if(["mcq","tf"].includes(sl.type)&&key.correct==null)return "Select the correct answer.";
   if(sl.type==="multi"&&!(key.correct||[]).length)return "Select at least one correct answer.";
   if(sl.type==="number"&&(key.correct==null||!Number.isFinite(key.correct)))return "Enter the correct number.";
-  if(sl.type==="short"&&!(key.accept||[]).length)return "Enter at least one accepted answer.";
+  if(sl.type==="short"&&sl.graded===true&&!(key.accept||[]).length)return "Enter at least one accepted answer.";
   if(sl.type==="task"&&sl.tasks.some(v=>!v.trim()))return "Write a task for each group.";
   return "";
 }

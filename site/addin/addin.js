@@ -35,14 +35,24 @@ export async function init() {
     if (typeof cfg === "string") { try { cfg = JSON.parse(cfg); } catch { cfg = null; } }
     const managedSetting = Office.context.document.settings.get("liveLessonManaged");
     managed = managedSetting === true || managedSetting === "true";
-    Office.context.document.getActiveViewAsync(r => { if (r.status === "succeeded") { view = r.value; rerender(); } });
-    Office.context.document.addHandlerAsync(Office.EventType.ActiveViewChanged, e => { view = e.activeView; synced = false; rerender(); });
+    Office.context.document.getActiveViewAsync(r => { if (r.status === "succeeded") { changeView(r.value); } });
+    Office.context.document.addHandlerAsync(Office.EventType.ActiveViewChanged, e => { changeView(e.activeView); });
   } else {
     cfg = lsGet("tll-addin-cfg");
   }
-  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") synced = false; else rerender(); });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") { synced = false; stopOwnInteraction(); } else rerender(); });
 }
 
+function stopOwnInteraction() {
+  const L = window.__lesson;
+  const active = L?.slides()[L.S.live.slide || 0];
+  if (L?.S.role === "teacher" && L.S.live.presenting && cfg?.mode === "slide" && active?.id === cfg.id) L.stopInteraction();
+}
+function changeView(next) {
+  view = next; synced = false;
+  if (view !== "read") stopOwnInteraction();
+  rerender();
+}
 function saveCfg(next) {
   cfg = next;
   if (!inOffice) return lsSet("tll-addin-cfg", next);
@@ -74,6 +84,8 @@ export function signIn(auth) {
   });
 }
 
+export function isSlideShow() { return view === "read"; }
+
 export function keepEditor() {
   return !refreshing && view !== "read" && workspace === "edit" && !!document.querySelector(".emb #pbody");
 }
@@ -97,7 +109,7 @@ function maybeSync(L, idx) {
   syncT = setTimeout(() => {
     if (synced || view !== "read" || document.visibilityState !== "visible") return;
     synced = true;
-    if ((L.S.live.slide || 0) !== idx) L.goTo(idx);
+    L.goTo(idx);
   }, 700);
 }
 
@@ -117,7 +129,7 @@ export function render(app) {
   const n = S.peers.filter(p => !p.isMe && (p.presence || {}).role === "student" && p.presence.sid === S.live.sessionId).length;
 
   const bar = h("div", { class: "ebar" },
-    h("b", { class: "ebrand", text: "Live Lesson" }),
+    h("img",{src:"./assets/nour-icon-32.png",alt:"",width:24,height:24}), h("b", { class: "ebrand", text: "Nour" }),
     S.live.code ? h("span", { class: "pill", title: "Students type this code to join" }, "Code ", h("b", { class: "mono", text: S.live.code }))
       : h("button", { class: "btn sm", onclick: () => L.setLive({ code: L.newCode() }) }, "Create join code"),
     h("span", { class: "pill" }, h("span", { class: "dot" + (S.connected ? " live" : "") }), n + " online"),
@@ -155,6 +167,11 @@ export function render(app) {
     return;
   }
 
+  if (managed && view !== "read") {
+    if (isLive && S.live.presenting) queueMicrotask(stopOwnInteraction);
+    shell(h("div", {class:"emain"}, L.stageEl(sl, {showKey:false,preview:true}), h("div",{class:"eside"}, h("h2",{text:"Slide preview"}), h("p",{class:"muted",text:"Start the slideshow to open this question for student answers."}), h("p",{text:"Results: " + (sl.resultsMode === "immediate" ? "Immediately" : sl.resultsMode === "hidden" ? "Hidden" : "On click")}), sl.timerSeconds ? h("p",{text:"Timer: " + sl.timerSeconds + " seconds"}) : null)));
+    return;
+  }
   const q = sl && L.TYPES[sl.type].q;
   const students = L.studentList();
   const side = h("div", { class: "eside" });
@@ -165,20 +182,27 @@ export function render(app) {
     if (q) {
       const answered = students.filter(s => s.ans[sl.id] != null && s.ans[sl.id] !== "").length;
       side.append(h("div", { class: "stat" }, h("div", null, h("b", { text: answered + "/" + students.length }), h("span", { text: "Answered" }))));
-      if (sl.type !== "open") side.append(L.barsEl(sl, L.summaryFor(sl, students)));
+      if (!["open", "short"].includes(sl.type) && L.showsResults(sl,S.live)) side.append(L.barsEl(sl, L.summaryFor(sl, students)));
     }
     side.append(h("div", { class: "row" },
       !fixed ? h("button", { class: "btn", disabled: live <= 0, onclick: () => L.goTo(live - 1), "aria-label": "Back" }, "←") : null,
       !fixed ? h("button", { class: "btn primary", disabled: live >= list.length - 1, onclick: () => L.goTo(live + 1), "aria-label": "Next" }, "→") : null,
       q ? h("button", { class: "btn" + (S.live.open ? "" : " on"), onclick: () => L.setLive({ open: !S.live.open }) }, S.live.open ? "Close answers" : "Reopen answers") : null,
-      sl && L.TYPES[sl.type].graded ? h("button", { class: "btn" + (S.live.reveal ? " on" : ""), onclick: L.toggleReveal }, S.live.reveal ? "Hide answer" : "Show answer") : null));
+      q && sl.resultsMode !== "hidden" ? h("button", {class:"btn",onclick:L.toggleResults}, S.live.resultsVisible ? "Hide results" : "Show results") : null,
+      sl && L.hasAnswerKey(sl, S.keys[sl.id]) ? h("button", { class: "btn" + (S.live.reveal ? " on" : ""), onclick: L.toggleReveal }, S.live.reveal ? "Hide answer" : "Show answer") : null));
   }
   if (editing) side.append(h("p", { class: "muted small", text: fixed ? "This slide holds lesson slide " + (idx + 1) + ". In the slideshow, reaching it moves students there." : "This slide follows the live lesson." }));
-  if (isLive && sl?.type === "open") {
+  if (isLive) side.prepend(L.timerEl() || h("span",{hidden:true}));
+  if (isLive && ["open", "short"].includes(sl?.type) && L.showsResults(sl,S.live)) {
     const replies = students.filter(s => s.ans[sl.id] != null && s.ans[sl.id] !== "");
-    side.append(h("div", { class: "resp" }, replies.map(s => h("div", null, h("b", { text: s.name }), String(s.ans[sl.id])))));
+    side.append(h("div", { class: "resp" }, replies.map(s => h("div", null, String(s.ans[sl.id])))));
   }
-  shell(h("div", { class: "emain" }, L.stageEl(sl, { showKey: isLive && S.live.reveal }), side));
+  const stage = L.stageEl(sl, { showKey: isLive && S.live.reveal });
+  if (view === "read" && isLive && sl.resultsMode !== "immediate" && sl.resultsMode !== "hidden" && !S.live.resultsVisible) {
+    stage.title = "Click to show class results";
+    stage.addEventListener("click", L.toggleResults, {once:true});
+  }
+  shell(h("div", { class: "emain" }, stage, side));
 }
 
 const CSS = `

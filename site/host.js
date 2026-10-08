@@ -12,7 +12,7 @@ const ONLINE_MS = 90 * 60 * 1000;
 
 function screen(...kids) {
   app$.replaceChildren(
-    el("div", { class: "top" }, el("div", { class: "brand grow" }, "Live Lesson", el("small", { text: "Answer live in class" }))),
+    el("div", { class: "top" }, el("div", { class: "brand grow" }, "Nour", el("small", { text: "Answer live in class" }))),
     el("div", { class: "swrap" }, el("div", { class: "scard" }, ...kids)));
 }
 
@@ -24,7 +24,7 @@ if (!firebaseConfig.apiKey || firebaseConfig.apiKey.startsWith("PASTE")) {
 const fb = initializeApp(firebaseConfig);
 const auth = getAuth(fb);
 const fs = getFirestore(fb);
-// Opened as ?addin: running inside PowerPoint as the Live Lesson add-in (teacher only).
+// Opened as ?addin: running inside PowerPoint as the Nour add-in (teacher only).
 const addin = new URLSearchParams(location.search).has("addin") ? await import(new URLSearchParams(location.search).get("addin") === "panel" ? "./addin/taskpane.js" : "./addin/addin.js") : null;
 if (addin) { await addin.init(); window.EMBED = addin; }
 const teacherMode = !!addin || location.hash === "#teacher";

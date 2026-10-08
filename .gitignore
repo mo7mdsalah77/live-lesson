@@ -1,2 +1,5 @@
 ﻿
 .codex-task.md
+
+node_modules/
+output/

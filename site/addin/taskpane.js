@@ -1,4 +1,4 @@
-import { init as initOffice, signIn } from "./addin.js";
+import { init as initOffice, signIn, isSlideShow } from "./addin.js";
 import { insertInteraction } from "./insert-interaction.js";
 import { questionForm, validateQuestion } from "./question-form.js";
 export { signIn };
@@ -85,7 +85,7 @@ export function render(app) {
   const list = L.slides();
   const map = globalThis.Office?.context?.document?.settings.get(MAP) || {};
   const linked = selected && list.find(s => s.id === map[selected]);
-  const header = h("header", { class: "llhead" }, h("b", { text: "Live Lesson" }), h("span", { class: "pill", text: S.connected ? "Connected" : "Connecting…" }));
+  const header = h("header", { class: "llhead" }, h("img",{src:"./assets/nour-icon-32.png",alt:"",width:28,height:28}), h("b", { text: "Nour" }), h("span", { class: "pill", text: S.connected ? "Connected" : "Connecting…" }));
   const nav = h("nav", { class: "llnav", "aria-label": "Interaction workspace" }, [["list","Interactions"],["class","Results"],["groups","Groups"]].map(([key,title]) => h("button", { class: "btn sm" + (page === key ? " on" : ""), onclick: () => navigate(key) }, title)));
   const body = h("section", { class: "llbody", id: "pbody" });
   const launch = s => L.goTo(list.findIndex(item => item.id === s.id));
@@ -101,11 +101,11 @@ export function render(app) {
       h("button", { class: "btn primary", onclick: () => navigate("choose") }, "+ Add interaction"),
       S.live.code ? h("div", { class: "note", text: "Student join code: " + S.live.code }) : h("button", { class: "btn", onclick: () => L.setLive({ code: L.newCode() }) }, "Create join code"));
     if (linked) body.append(h("div", { class: "note" }, h("b", { text: "Selected slide: " }), linked.title,
-      h("button", { class: "btn primary sm", onclick: () => launch(linked) }, "Launch interaction")));
+      h("button", { class: "btn primary sm", disabled: !isSlideShow(), title: "Starts automatically when this slide is presented", onclick: () => launch(linked) }, "Start interaction")));
     if (!list.length) body.append(h("p", { class: "muted", text: "Choose an interaction, write your question, and click Add to presentation. A new live slide is inserted after your current slide." }));
     list.forEach((s, i) => body.append(h("article", { class: "llcard" }, h("span", { class: "eyebrow", text: `${i + 1} · ${L.TYPES[s.type].label}` }), h("b", { text: s.title || "Untitled interaction" }),
-      h("div", { class: "row" }, h("button", { class: "btn sm", disabled: busy, onclick: () => attach(s) }, busy ? "Adding…" : "Add to presentation"), h("button", { class: "btn primary sm", onclick: () => launch(s) }, "Launch"), h("button", { class: "btn sm", onclick: () => edit(s) }, "Edit")))));
-    if (list.length) body.append(h("h3", { text: "Live interaction" }), ...L.liveTab().filter(Boolean), h("div", { class: "row" }, h("button", { class: "btn sm", onclick: () => L.setLive({ open: !S.live.open }) }, S.live.open ? "Close answers" : "Reopen answers"), h("button", { class: "btn sm", onclick: L.toggleReveal }, S.live.reveal ? "Hide answer" : "Show answer")));
+      h("div", { class: "row" }, h("button", { class: "btn sm", disabled: busy, onclick: () => attach(s) }, busy ? "Adding…" : "Add to presentation"), h("button", { class: "btn primary sm", disabled: !isSlideShow(), title: "Starts automatically in slideshow mode", onclick: () => launch(s) }, "Launch"), h("button", { class: "btn sm", onclick: () => edit(s) }, "Edit")))));
+    if (list.length) body.append(h("h3", { text: "Live interaction" }), ...L.liveTab().filter(Boolean), h("div", { class: "row" }, h("button", { class: "btn sm", onclick: () => L.setLive({ open: !S.live.open }) }, S.live.open ? "Close answers" : "Reopen answers"), h("button", {class:"btn sm",onclick:L.toggleResults},S.live.resultsVisible ? "Hide results" : "Show results"), L.hasAnswerKey(list[S.live.slide || 0],S.keys[list[S.live.slide || 0]?.id]) ? h("button", { class: "btn sm", onclick: L.toggleReveal }, S.live.reveal ? "Hide answer" : "Reveal correct answer") : null, L.timerEl()));
     body.append(h("p", { class: "muted small", text: "Each interaction is its own live PowerPoint slide. Use the side panel for your results and groups." }));
   }
   app.append(h("div", { class: "llpanel" }, header, nav, body));

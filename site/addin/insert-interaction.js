@@ -1,4 +1,4 @@
-// Insert a new slide containing the existing Live Lesson content add-in.
+// Insert a new slide containing the existing Nour content add-in.
 let zipReady;
 async function zipLibrary() {
   if (globalThis.JSZip) return globalThis.JSZip;
@@ -29,7 +29,7 @@ export async function interactionPresentation(question) {
   const canvas = document.createElement("canvas"); canvas.width = 1280; canvas.height = 720;
   const paint = canvas.getContext("2d");
   paint.fillStyle = "#ffffff"; paint.fillRect(0, 0, 1280, 720);
-  paint.fillStyle = "#0f766e"; paint.font = "bold 24px sans-serif"; paint.fillText("LIVE LESSON", 64, 68);
+  paint.fillStyle = "#0f766e"; paint.font = "bold 24px sans-serif"; paint.fillText("NOUR", 64, 68);
   paint.fillStyle = "#172b36"; paint.font = "bold 40px sans-serif";
   const wrap = (text, top, maxLines, lineHeight) => {
     let line = "", count = 0;
@@ -46,7 +46,7 @@ export async function interactionPresentation(question) {
   paint.font = "28px sans-serif";
   (question.options || []).slice(0, 8).forEach((choice, i) => wrap(`${i + 1}. ${choice}`, 330 + i * 35, 1, 35));
   paint.fillStyle = "#64748b"; paint.font = "22px sans-serif";
-  paint.fillText("Live responses appear when the Live Lesson add-in loads.", 64, 675);
+  paint.fillText("Live responses appear when the Nour add-in loads.", 64, 675);
   zip.file("ppt/media/image.bin", canvas.toDataURL("image/png").split(",")[1], { base64: true });
   return zip.generateAsync({ type: "base64", compression: "DEFLATE" });
 }
