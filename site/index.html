@@ -1,0 +1,936 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<script>window.HOSTED = true;</script>
+</head>
+<body>
+<title>Live Lesson</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: teacher = slide stage left + tabbed control panel right; student = one focused card. Exercise-book paper ground. */
+:root{
+  --paper:#F3F5F9; --card:#FFFFFF; --ink:#16213A; --muted:#5A6580; --line:#D8DEEA; --soft:#E9EDF5;
+  --accent:#0B7A84; --accent-ink:#FFFFFF; --accent-soft:#D7EFF0;
+  --good:#1E8A4C; --good-soft:#DDF2E5; --bad:#C23A3A; --bad-soft:#F8E0E0; --warn:#B7791F;
+  --t0:#D25A22; --t0-soft:#FBE6DB; --t1:#2B66D1; --t1-soft:#DFE8FA; --t2:#7344C2; --t2-soft:#ECE3FA;
+  --grid:rgba(43,102,209,.06);
+  --f-display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0E1320; --card:#161D2D; --ink:#E6EBF5; --muted:#99A4BB; --line:#2A3449; --soft:#1E2639;
+  --accent:#3CBEC7; --accent-ink:#06262A; --accent-soft:#13383C;
+  --good:#4CC27F; --good-soft:#163526; --bad:#EE7272; --bad-soft:#3A1C1E; --warn:#E3A84A;
+  --t0:#F08954; --t0-soft:#3A2418; --t1:#6E9BF0; --t1-soft:#1B2945; --t2:#A985EB; --t2-soft:#2A2042;
+  --grid:rgba(110,155,240,.05); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0E1320; --card:#161D2D; --ink:#E6EBF5; --muted:#99A4BB; --line:#2A3449; --soft:#1E2639;
+  --accent:#3CBEC7; --accent-ink:#06262A; --accent-soft:#13383C;
+  --good:#4CC27F; --good-soft:#163526; --bad:#EE7272; --bad-soft:#3A1C1E; --warn:#E3A84A;
+  --t0:#F08954; --t0-soft:#3A2418; --t1:#6E9BF0; --t1-soft:#1B2945; --t2:#A985EB; --t2-soft:#2A2042;
+  --grid:rgba(110,155,240,.05); color-scheme:dark}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--paper);color:var(--ink);font:16px/1.5 var(--f-body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+.wrap{padding-inline:16px;padding-block:14px 40px;max-width:1360px;margin:0 auto}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:6px;min-height:40px}
+.btn:hover{border-color:var(--accent)}
+.btn:focus-visible,.chip:focus-visible,.opt:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,.tab:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.on{background:var(--accent-soft);border-color:var(--accent)}
+.btn.danger{color:var(--bad)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.sm{min-height:32px;padding:4px 10px;font-size:14px}
+input[type=text],input[type=number],textarea,select{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+textarea{resize:vertical;min-height:70px}
+label.f{display:grid;gap:4px;font-size:14px;font-weight:700}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grow{flex:1;min-width:0}
+
+/* top bar */
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:4px 14px;border-bottom:2px solid var(--ink);margin-bottom:16px}
+.brand{font-family:var(--f-display);font-weight:800;font-size:22px;letter-spacing:-.01em}
+.brand small{display:block;font:700 12px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:13px;font-weight:700;background:var(--soft)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.dot.live{background:var(--good);box-shadow:0 0 0 3px var(--good-soft)}
+
+/* teacher grid */
+.tgrid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){.tgrid{grid-template-columns:1fr}}
+.stage{background:var(--card);border:1px solid var(--line);border-radius:14px;min-height:min(52vw,480px);max-width:100%;padding:clamp(18px,3.5vw,40px);display:flex;flex-direction:column;gap:14px;position:relative;min-width:0}
+.stage .kind{display:flex;gap:8px;align-items:center}
+.stage h2{font-size:clamp(22px,3vw,38px);font-weight:800;letter-spacing:-.015em}
+.stage .body{font-size:clamp(16px,1.6vw,20px);white-space:pre-wrap;max-width:60ch}
+.sopts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:auto}
+.sopt{border:2px solid var(--line);border-radius:10px;padding:12px 14px;font-size:clamp(15px,1.5vw,19px);font-weight:700;display:flex;gap:10px;align-items:center}
+.sopt .let{font-family:var(--f-mono);font-size:13px;width:26px;height:26px;border-radius:6px;display:grid;place-items:center;background:var(--soft);flex:none}
+.sopt.correct{border-color:var(--good);background:var(--good-soft)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.strip{display:flex;gap:6px;overflow-x:auto;padding-block:10px 4px}
+.thumb{flex:none;width:92px;border:1px solid var(--line);border-radius:8px;background:var(--card);padding:6px 8px;text-align:left;cursor:pointer;font-size:12px;line-height:1.25}
+.thumb b{display:block;font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.thumb span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.thumb.cur{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;min-width:0}
+.tabs{display:flex;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{background:none;border:0;padding:12px 14px;font-weight:700;cursor:pointer;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
+.tab.cur{color:var(--ink);border-bottom-color:var(--accent)}
+.pbody{padding:16px;display:grid;gap:14px}
+
+/* bars */
+.bars{display:grid;gap:8px}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:8px;align-items:center}
+.bar .lab{font-size:14px;display:flex;justify-content:space-between;gap:8px;margin-bottom:3px}
+.bar .track{height:12px;background:var(--soft);border-radius:6px;overflow:hidden}
+.bar .fill{height:100%;background:var(--t1);border-radius:6px;transition:width .3s}
+.bar.ok .fill{background:var(--good)}
+.bar .n{font-family:var(--f-mono);text-align:right;font-weight:700}
+.stat{display:flex;gap:18px;flex-wrap:wrap}
+.stat div{display:grid}
+.stat b{font:800 26px var(--f-display);font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.resp{display:grid;gap:6px;max-height:320px;overflow:auto}
+.resp div{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px}
+.resp b{display:block;font-size:12px;color:var(--muted)}
+
+/* class table */
+.tblwrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.m{font-family:var(--f-mono);text-align:center}
+.mk-y{color:var(--good);font-weight:700}.mk-n{color:var(--bad);font-weight:700}.mk-p{color:var(--warn);font-weight:700}
+.chip{border:0;border-radius:999px;padding:3px 10px;font-size:13px;font-weight:700;cursor:pointer}
+.g0{background:var(--t0-soft);color:var(--t0)}.g1{background:var(--t1-soft);color:var(--t1)}.g2{background:var(--t2-soft);color:var(--t2)}.gx{background:var(--soft);color:var(--muted)}
+.chip.ovr{box-shadow:inset 0 0 0 2px currentColor}
+
+/* groups */
+.gcols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:560px){.gcols{grid-template-columns:1fr}}
+.gcol{border-radius:10px;padding:10px;border-top:5px solid}
+.gcol.c0{background:var(--t0-soft);border-color:var(--t0)}.gcol.c1{background:var(--t1-soft);border-color:var(--t1)}.gcol.c2{background:var(--t2-soft);border-color:var(--t2)}
+.gcol input{font-weight:700;margin-bottom:6px;font-size:14px;padding:6px 8px}
+.gcol ul{margin:0;padding-left:18px;font-size:14px}
+.scale{position:relative;height:28px;border-radius:6px;overflow:hidden;display:flex;font:700 12px var(--f-mono)}
+.scale div{display:grid;place-items:center;color:#fff}
+
+/* editor */
+.ed{display:grid;grid-template-columns:150px minmax(0,1fr);gap:14px}
+@media (max-width:560px){.ed{grid-template-columns:1fr}}
+.elist{display:grid;gap:4px;align-content:start;max-height:520px;overflow:auto}
+.elist button{text-align:left;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 8px;font-size:13px;cursor:pointer}
+.elist button.cur{border-color:var(--accent);background:var(--accent-soft)}
+.optrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px;align-items:center}
+
+/* student */
+.swrap{max-width:720px;margin:0 auto}
+.scard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:clamp(18px,4vw,32px);display:grid;gap:16px}
+.scard h2{font-size:clamp(22px,5vw,32px);font-weight:800}
+.opts{display:grid;gap:10px}
+.opt{display:flex;gap:12px;align-items:center;border:2px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--card);cursor:pointer;text-align:left;font-weight:700;font-size:18px;min-height:58px;width:100%}
+.opt .let{font-family:var(--f-mono);font-size:13px;width:28px;height:28px;border-radius:7px;display:grid;place-items:center;background:var(--soft);flex:none}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel .let{background:var(--accent);color:var(--accent-ink)}
+.opt.right{border-color:var(--good);background:var(--good-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt:disabled{cursor:default}
+.scale5{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.scale5 .opt{justify-content:center;font-size:22px;padding:12px 0}
+.fb{border-radius:12px;padding:12px 14px;font-weight:700}
+.fb.ok{background:var(--good-soft);color:var(--good)}.fb.no{background:var(--bad-soft);color:var(--bad)}.fb.info{background:var(--soft);color:var(--muted)}
+.task{border-radius:14px;padding:18px;border-left:8px solid;display:grid;gap:8px}
+.task.c0{background:var(--t0-soft);border-color:var(--t0)}.task.c1{background:var(--t1-soft);border-color:var(--t1)}.task.c2{background:var(--t2-soft);border-color:var(--t2)}
+.task p{margin:0;white-space:pre-wrap;font-size:18px}
+.center{display:grid;place-items:center;text-align:center;gap:12px;padding-block:40px}
+.note{font-size:14px;border:1px dashed var(--line);border-radius:10px;padding:10px 12px;color:var(--muted)}
+
+/* present */
+.present{position:fixed;inset:0;background:var(--paper);z-index:20;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px);display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:20px;overflow:auto}
+.present .stage{aspect-ratio:auto;min-height:70vh}
+@media (max-width:800px){.present{grid-template-columns:1fr}}
+.code{font:800 clamp(40px,7vw,88px)/1 var(--f-mono);letter-spacing:.12em;color:var(--accent)}
+.codepill{font-family:var(--f-mono);letter-spacing:.1em;background:var(--accent-soft);color:var(--ink)}
+.tnotes{margin-top:12px;border-left:4px solid var(--warn);background:var(--card);border-radius:8px;padding:10px 14px;font-size:15px;white-space:pre-wrap}
+pre.codebox{margin:0;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font:500 clamp(14px,1.5vw,18px)/1.5 var(--f-mono);overflow-x:auto;white-space:pre;max-width:100%}
+.explain{border-left:4px solid var(--good);background:var(--good-soft);border-radius:8px;padding:10px 14px;font-size:16px}
+.slideimg{width:100%;aspect-ratio:16/9;object-fit:contain;background:var(--soft);border-radius:10px;border:1px solid var(--line);display:block}
+.stage.hasimg{padding:clamp(10px,1.5vw,16px)}
+.imgph{width:100%;aspect-ratio:16/9;border-radius:10px;background:var(--soft);display:grid;place-items:center;color:var(--muted);font-size:14px}
+.import{border:1px dashed var(--accent);border-radius:10px;padding:12px;display:grid;gap:8px;background:var(--accent-soft)}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:10px;font-weight:700;z-index:30;max-width:calc(100% - 32px)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap" id="app">
+  <div class="top">
+    <div class="brand">Tiered Live Lesson<small>Connecting to your class…</small></div>
+  </div>
+  <div class="center">
+    <h2>Getting the lesson ready</h2>
+    <p class="muted">Teachers see the slides, live answers and groups. Students see one question at a time and their own group task.</p>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+"use strict";
+/* ---------- helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  if (attrs) for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k === "text") el.textContent = v;
+    else if (k === "style") el.style.cssText = v;
+    else if (k === "value") el.value = v;
+    else if (k === "checked") el.checked = !!v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kids.flat(Infinity)) {
+    if (c == null || c === false) continue;
+    el.append(c.nodeType ? c : document.createTextNode(String(c)));
+  }
+  return el;
+}
+const LET = "ABCDEFGH";
+const clone = o => JSON.parse(JSON.stringify(o));
+const uid6 = () => Math.random().toString(36).slice(2, 8);
+const safeKey = s => String(s || "").replace(/[^A-Za-z0-9_\-.~:@+]/g, "_").slice(0, 150) || "anon";
+const lsGet = k => { try { return localStorage.getItem(k); } catch { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+let toastT;
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2600); }
+
+const TYPES = {
+  join:   { label: "Join screen",     graded: false, q: false },
+  info:   { label: "Content",         graded: false, q: false },
+  mcq:    { label: "Multiple choice", graded: true,  q: true },
+  tf:     { label: "True or false",   graded: true,  q: true },
+  multi:  { label: "Select all",      graded: true,  q: true },
+  number: { label: "Number answer",   graded: true,  q: true },
+  short:  { label: "Short answer",    graded: true,  q: true },
+  poll:   { label: "Poll",            graded: false, q: true },
+  scale:  { label: "Confidence 1–5",  graded: false, q: true },
+  open:   { label: "Open response",   graded: false, q: true },
+  task:   { label: "Group tasks",     graded: false, q: false },
+};
+const MIN_ANSWERS = 2;
+const newCode = () => Array.from({ length: 5 }, () => "ABCDEFGHJKMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 30)]).join("");
+const DEFAULT_LIVE = { code: "", slide: 0, open: true, reveal: false, revealKey: null, summary: null, sessionId: "s1",
+  tiers: {}, overrides: {}, auto: true, tierNames: ["Foundation", "Core", "Stretch"], thresholds: [50, 80] };
+
+/* Lesson 1.10 Conditions in Python, converted from the teacher's observation deck; loadable from the editor. */
+const SAMPLE = {"deck":{"title":"Lesson 1.10: Conditions in Python","slides":[{"id":"join1","type":"join","title":"Conditions in Python: if, elif and else","body":"Lesson 1.10 · Operators and logic · Grade 12 Computing Systems\n\nOpen the lesson link, type the code below and your full name.","match":"OPERATORS AND LOGIC"},{"id":"s2","type":"mcq","title":"Start Strong 1: the UAE has 7 emirates. What is printed?","code":"emirates = 7\nprint(emirates % 2 == 0)","options":["True","False","0","Error"],"points":1,"match":"5 QUESTIONS · SHOW ME BOARDS"},{"id":"s3","type":"mcq","title":"Start Strong 2: the UAE was founded in 1971. What is printed?","code":"year = 1971\nprint(year > 1970 and year < 1980)","options":["True","False","1971","Error"],"points":1,"match":"5 QUESTIONS · SHOW ME BOARDS"},{"id":"s4","type":"mcq","title":"Start Strong 3: what happens?","code":"print(7 = 7)","options":["True","False","7","Error"],"points":1,"match":"5 QUESTIONS · SHOW ME BOARDS"},{"id":"s5","type":"mcq","title":"Start Strong 4: the user types 1971. What is printed?","code":"year = input(\"UAE founded? \")\nprint(year == 1971)","options":["True","False","1971","Error"],"points":1,"match":"5 QUESTIONS · SHOW ME BOARDS"},{"id":"s6","type":"mcq","title":"Start Strong 5: what is printed?","code":"# Abu Dhabi weather\ntemp = 38\nif temp > 40:\n    print(\"Hot!\")\nprint(\"Enjoy\")","options":["Hot!, Enjoy","Enjoy","Hot!","Error"],"points":1,"match":"5 QUESTIONS · SHOW ME BOARDS"},{"id":"s7","type":"info","title":"Learning objective","body":"I can use if, elif and else to make a program choose what to do, and test my decisions at the boundary.\n\nSuccess criteria: by the end of this lesson, I can…\nSC1 · Writing an if statement\nwrite an if statement with a correct condition, colon and indentation, and predict when its block runs.\n\nSC2 · Choosing between paths\nuse if-else and elif to choose between paths and test my program with boundary values.","match":"What We're Learning Today"},{"id":"s8","type":"poll","title":"Learning continuum: where are you now?","body":"Read the objective and both success criteria. Pick where you are right now. We will come back to this twice.","options":["1. Starting: I cannot write an if statement yet","2. Developing: I can predict which lines run in an if statement","3. Secure: I can write if and if-else, and test the boundary","4. Extending: I can use elif in the right order and explain why"],"match":"LEARNING CONTINUUM · START OF LESSON"},{"id":"s9","type":"info","title":"Why this matters","body":"National identity\nUAE weather apps and smart buildings decide when to send heat alerts using conditions: if the temperature is above a limit, act. Today you write the same kind of decision.\n\nCharacter focus: resilience\nTest the case that might fail, not just the one you expect to pass. When a condition gives the wrong result, read it again, test the edge and fix it.\n\nSustainability: SDG 7, affordable and clean energy\nSmart air conditioning runs only if a room is occupied and too warm. One well-written condition saves energy in thousands of buildings.","match":"Character Focus"},{"id":"s10","type":"info","title":"Start Strong: logic or luck?","body":"Game 1: you guess my number\nI am thinking of a number from 1 to 100. Call out a guess. I answer Higher, Lower or Correct.\n\nGame 2: the computer guesses yours\nChoose a secret number from 1 to 100 as a class. Answer the computer's guesses with Higher, Lower or Correct.\n\nAs you play: how many guesses did each game take? Who used logic, and who used luck? Keep a tally on your Show Me board.\n\nSC1 · Writing an if statement","match":"THE GUESSING GAME"},{"id":"s11","type":"open","title":"Logic or luck? How was the way WE guessed different from the way the COMPUTER guessed?","body":"Think on your own, then discuss with your partner.\nScaffold: \"We guessed by ___, but the computer ___ because ___.\"\nWord bank: feel · luck · picked the middle · followed rules · halved the numbers · it used logic","match":"THINK, PAIR, SHOW"},{"id":"s12","type":"info","title":"From game to code: Game 1 was a program","code":"secret = 37\nguess = int(input(\"Your guess: \"))\nif guess < secret:\n    print(\"Higher\")\nelif guess > secret:\n    print(\"Lower\")\nelse:\n    print(\"Correct!\")","body":"Predict: what prints if guess = 50?\n\nEvery answer you got was a decision: a condition that is True or False, and a different action for each result. By the end of today you will be able to write this program yourself.","match":"Game 1 Was a Program"},{"id":"s13","type":"info","title":"Key vocabulary","body":"condition: a question Python answers with True or False (temp > 40)\nBoolean: a value that is only True or False\nif: runs a block only when its condition is True\ncolon : ends every if, elif and else line\nindentation: 4 spaces that put a line inside a block\nblock: the indented lines that belong to an if or else\nelif: checks another condition when those above were False\nboundary: the exact value where the answer changes (40 in temp >= 40)","match":"Words We Will Use Today"},{"id":"s14","type":"info","title":"I do: decisions as a flowchart (Abu Dhabi weather app)","code":"temp = 44\nif temp > 40:\n    print(\"Stay in the shade!\")\nprint(\"Enjoy Abu Dhabi!\")","body":"Run 1, August, temp = 44: 44 > 40 is True → Stay in the shade! then Enjoy Abu Dhabi!\nRun 2, January, temp = 24: 24 > 40 is False → Enjoy Abu Dhabi!\n\nOnly the True path runs the indented line. Both paths meet again at the line that is not indented.\n\nSC1 · Writing an if statement","match":"Decisions as a Flowchart"},{"id":"s15","type":"info","title":"I do: anatomy of an if statement","code":"# Abu Dhabi weather app\ntemp = 44\nif temp > 40:\n    print(\"Stay in the shade!\")\nprint(\"Enjoy Abu Dhabi!\")","body":"if: keyword that starts the decision\ntemp > 40: the condition, True or False\n: the colon ends the if line\n4 spaces: indentation puts the line inside the block\nno indent: outside the block, always runs\n\nThink aloud: an August afternoon, 44 > 40 is True, so the indented line runs. The last line is not indented, so it runs in any weather.","match":"Anatomy of an if Statement"},{"id":"s16","type":"mcq","title":"We do: same code, a December evening. What is printed?","code":"temp = 26\nif temp > 40:\n    print(\"Stay in the shade!\")\nprint(\"Enjoy Abu Dhabi!\")","options":["Stay in the shade! then Enjoy Abu Dhabi!","Enjoy Abu Dhabi!","Stay in the shade!","Nothing"],"points":1,"group":false,"match":"Same Code, a December Evening"},{"id":"s17","type":"mcq","title":"Hinge question 1: what is printed?","code":"score = 50\nif score > 50:\n    print(\"Well done\")\nprint(\"Finished\")","options":["Well done and Finished","Finished","Well done","Error"],"points":1,"hinge":true,"match":"HINGE QUESTION 1"},{"id":"s18","type":"task","title":"Choose your route · 9 minutes · pairs","body":"Open the Saqr-Bot game from today's Teams post and type your full name. When the timer ends, press My progress and hold up your screen.","tasks":["1. 3-minute example with Mr. Mohamed at the help table.\n2. Search: w3schools python if else. In Try it Yourself: run the first example; change a number to make it False; delete the colon, then the indent, and read each error.\n3. Then start the Saqr-Bot game at Zone 1.","Open all 12 crates in Zones 1 and 2.\nDriver moves and clicks; Navigator reads each crate aloud and answers first, with a reason. Swap roles after every crate.\nWrong? Read the explanation, then say the rule to your partner.\nFinished? Carry on into Zone 3.","Speed-run all 12 crates in Zones 1 and 2.\nWrite Two Alerts: ask for temperature and humidity.\nif temp >= 40: print \"Heat alert\"\nif humidity > 70: print \"Humid day\"\nThen Zone 3 to learn if-else early."],"match":"Choose Your Route"},{"id":"s19","type":"mcq","title":"Progress check 1: which symbol must end every if line?","options":[":",";",".","=="],"points":1,"group":false,"match":"Saqr-Bot Recap"},{"id":"s20","type":"mcq","title":"Progress check 2: what is printed?","code":"temp = 35\nif temp > 40:\n    print(\"Hot\")\nprint(\"Done\")","options":["Done","Hot and Done","Hot","Error"],"points":1,"group":false,"match":"Saqr-Bot Recap"},{"id":"s21","type":"mcq","title":"Progress check 3: which line gives a SyntaxError?","options":["if score = 50:","if score == 50:","if score >= 50:","if score != 50:"],"points":1,"group":false,"match":"Saqr-Bot Recap"},{"id":"s22","type":"poll","title":"Midpoint: where are you now?","body":"Move only if your Hinge 1, game or recap quiz shows evidence of SC1. Success criterion 2 (if-else and elif) comes next.","options":["1. Starting: I cannot write an if statement yet","2. Developing: I can predict which lines run in an if statement","3. Secure: I can write if and if-else, and test the boundary","4. Extending: I can use elif in the right order and explain why"],"match":"Review Your Learning"},{"id":"s23","type":"info","title":"I do: if-else, two paths (UAE National Day)","code":"month = 12\nday = 2\nif month == 12 and day == 2:\n    print(\"Happy UAE National Day!\")\nelse:\n    print(\"Have a great day!\")\nprint(\"See you at school\")","body":"Run 1, 2 December: 12 == 12 and 2 == 2 is True → Happy UAE National Day! then See you at school\nRun 2, 15 October: 10 == 12 is False → Have a great day! then See you at school\n\nExactly one block runs: if OR else, never both. Then the paths meet again.\n\nSC2 · Choosing between paths","match":"if-else: Two Paths"},{"id":"s24","type":"mcq","title":"We do: heat warning. What is printed?","code":"temp = 38\nif temp >= 40:\n    print(\"Heat warning\")\nelse:\n    print(\"Normal day\")\nprint(\"Forecast done\")","options":["Heat warning, Forecast done","Normal day, Forecast done","Normal day","Heat warning, Normal day, Forecast done"],"points":1,"group":false,"match":"Heat Warning"},{"id":"s25","type":"mcq","title":"Test the boundary: temp = 40. What does this program print?","code":"if temp >= 40:\n    print(\"Heat warning\")\nelse:\n    print(\"Normal day\")","body":"Bugs hide at the edge. Test just below (39), exactly on (40) and just above (41).","options":["Heat warning","Normal day","Both","Nothing"],"points":1,"group":false,"match":"Test the Boundary"},{"id":"s26","type":"mcq","title":"Hinge question 2: which else line is written correctly?","options":["else x <= 5:","else:","else;","Else:"],"points":1,"group":false,"match":"HINGE QUESTION 2"},{"id":"s27","type":"info","title":"I do: follow the value through if-elif-else","code":"score = 72\nif score >= 90:\n    print(\"Distinction\")\nelif score >= 60:\n    print(\"Pass\")\nelse:\n    print(\"Fail\")","body":"72 >= 90 → False\n72 >= 60 → True → prints Pass\n\nelif means else if: another condition, checked only when everything above was False. Python runs only the FIRST True block.","match":"Follow the Value Through"},{"id":"s28","type":"mcq","title":"Order matters: we swapped the conditions. score = 95. What is printed?","code":"score = 95\nif score >= 60:\n    print(\"Pass\")\nelif score >= 90:\n    print(\"Distinction\")\nelse:\n    print(\"Fail\")","options":["Pass","Distinction","Pass and Distinction","Fail"],"points":1,"group":false,"match":"What If We Swap the Order"},{"id":"s29","type":"info","title":"What a good one looks like: Heat Alert","code":"# Sara Ali, 8 Oct, Heat Alert\n# ask for the temperature\ntemp = int(input(\"Temperature? \"))\n# 40 or more: alert, otherwise safe\nif temp >= 40:\n    print(\"Heat alert: stay indoors\")\nelse:\n    print(\"Safe to go out\")\n# tested: 39, 40, 41","body":"✓ Header comment: name, date, task on line 1\n✓ Plan as comments: each step explained before the code\n✓ Clear names: temp, not t or x1\n✓ Converted input: int() before comparing\n✓ Boundary with >=: 40 itself gives the alert\n✓ Indented blocks: 4 spaces under if and else\n✓ Tests recorded: below, on and above the boundary\n\nUse this as your model for the client brief. Your program should have all seven features.","match":"Model Program: Heat Alert"},{"id":"s30","type":"task","title":"Client brief: the YAA Performance Evaluator","body":"\"At Yas American Academy, teachers want to automate how they evaluate student performance each term. We need a Python program that decides pass or fail, assigns a grade and gives feedback.\"\n\nClient (teacher): explains the brief, gives the test scores, signs off only when every test passes.\nDeveloper: asks up to two questions, writes the code, runs every test. Swap roles for the next task.","tasks":["Start at Task 1: Pass or Fail\n# ask for the score\n# 60 or more: \"Pass\"\n# else: \"Fail\"\nUse if-else. Tests: 59, 60, 61.\nClient signs off, then move on to Task 2.","Start at Task 2: Grade A to F\n# A 90+   B 80–89   C 70–79   D 60–69   F below 60\nUse if / elif / else. Tests: 59, 60, 89, 90.\nClient signs off, then move on to Task 3.","Start at Task 3: Average + Feedback\n# ask for 3 subject scores\n# average, grade, Pass/Fail\n# motivational message\nCombine Tasks 1 and 2 with an average. Test every boundary."],"match":"The YAA Performance Evaluator"},{"id":"s31","type":"info","title":"Self-assess: possible solutions","code":"# Task 1\nscore = int(input(\"Score? \"))\nif score >= 60:\n    print(\"Pass\")\nelse:\n    print(\"Fail\")\n\n# Task 2\nscore = int(input(\"Score? \"))\nif score >= 90:\n    print(\"Grade A\")\nelif score >= 80:\n    print(\"Grade B\")\nelif score >= 70:\n    print(\"Grade C\")\nelif score >= 60:\n    print(\"Grade D\")\nelse:\n    print(\"Grade F\")","body":"Order: check the highest band first. If score >= 60 came first, a 95 would print Grade D.\n>=: tests 59 and 60, 89 and 90 prove every boundary works.\nTask 3: avg = (s1 + s2 + s3) / 3, then use avg in the same chain and add a message.","match":"Possible Solutions"},{"id":"s32","type":"open","title":"Improve and review: what did you fix after comparing your code with the model?","body":"Add it to the end of your code too:\n# What I improved after self-assessment: ...\n\nThen read another pair's code and add one constructive comment, e.g. # Clear conditions! Test 60 too.\nSubmit a screenshot of your final program to the Teams assignment (one per pair).","match":"Improve, Review, Target"},{"id":"s33","type":"mcq","title":"Exit check 1: what is printed?","code":"x = 10\nif x >= 10:\n    print(\"A\")\nprint(\"B\")","options":["A then B","B only","A only","Error"],"points":1,"group":false,"match":"answer on your Show Me board, then self-mark"},{"id":"s34","type":"mcq","title":"Exit check 2: what is printed?","code":"emirates = 7\nif emirates % 2 == 0:\n    print(\"even\")\nelse:\n    print(\"odd\")","options":["even","odd","even and odd","Error"],"points":1,"group":false,"match":"answer on your Show Me board, then self-mark"},{"id":"s35","type":"mcq","title":"Exit check 3: what happens?","code":"age = 18\nif age = 18:\n    print(\"Adult\")","options":["Adult","Nothing","True","Error"],"points":1,"group":false,"match":"answer on your Show Me board, then self-mark"},{"id":"s36","type":"mcq","title":"Exit check 4: s = 95. What is printed?","code":"s = 95\nif s >= 50:\n    print(\"Pass\")\nelif s >= 90:\n    print(\"Excellent\")","options":["Pass","Excellent","Pass and Excellent","Error"],"points":1,"group":false,"match":"answer on your Show Me board, then self-mark"},{"id":"s37","type":"mcq","title":"Exit check 5: best test pair for this program?","code":"score = int(input(\"Score? \"))\nif score >= 50:\n    print(\"Pass\")","options":["10 and 100","49 and 50","75 and 80","0 and 1"],"points":1,"group":false,"match":"answer on your Show Me board, then self-mark"},{"id":"s38","type":"open","title":"Feed forward: next time you write if, elif or else, which rule will you check first, and why?","body":"Colon · Indent · == not = · int() · >= at the edge · Order (highest band first)\nScaffold: \"I will check ___ first because ___.\"\nChallenge: name a bug that only a boundary test would catch.","match":"Which Rule Will You Check First"},{"id":"s39","type":"poll","title":"Final check: where are you now?","body":"Be ready to justify it with evidence from the exit check.","options":["1. Starting: I cannot write an if statement yet","2. Developing: I can predict which lines run in an if statement","3. Secure: I can write if and if-else, and test the boundary","4. Extending: I can use elif in the right order and explain why"],"match":"FINAL PROGRESS CHECK"},{"id":"s40","type":"info","title":"Key takeaways","body":"if: condition, colon, indented block. The block runs only when the condition is True.\nelse: no condition, lined up with its if. Exactly one block runs.\nelif: checked in order from the top. Only the first True block runs, so put the highest band first.\nTest: always test just below, on and just above the boundary.\n\nNext: Unit 1 Summative Assessment, Friday 9 October.","match":"Key Takeaways"}]},"keys":{"join1":{"notes":"Students join as they arrive. Keep this up until the joined count matches the register. Your seating plan (MAP, needs, Driver/Navigator/Checker roles) stays on your own copy: the Groups tab now sets Routes A/B/C live from Hinge 1, so you no longer fill the Route column by hand."},"s2":{"correct":1,"explain":"7 % 2 is 1, and 1 == 0 is False.","notes":"Start Strong · 5 questions · 5 minutes. These five plus Hinge 1 decide Routes. Leave answers open, then Show answer after each, or run all five and reveal at the end."},"s3":{"correct":0,"explain":"Both comparisons are True, so and gives True."},"s4":{"correct":3,"explain":"= assigns a value. Comparing needs ==, so this is a SyntaxError."},"s5":{"correct":1,"explain":"input() gives text. The text \"1971\" is not equal to the number 1971."},"s6":{"correct":1,"explain":"38 > 40 is False, so the indented line is skipped. Not sure why? By the end of this lesson it will be clear.","notes":"Q5 is the entrance to today's lesson. Check the Class tab: anyone with 5/5 who also gets Hinge 1 right goes to Route C automatically."},"s7":{"notes":"Cold call one student to put the LO in their own words."},"s8":{"notes":"Replaces the Post-its. Live answers shows the spread instantly: most should be at 1 or 2. Use it with the Start Strong scores to sanity-check the routes later."},"s10":{"notes":"Run the two games from the clickable PowerPoint slides (Game 1 secrets: 37, then 82). Game 2: the computer finds any number in 7 guesses or fewer."},"s11":{"notes":"Look for: we guessed by feel; the computer always took the middle and followed rules. Read two contrasting answers aloud. Bridge: every answer was a decision that depended on a condition, and today we write those decisions in Python."},"s12":{"notes":"Ask for predictions before saying 'Lower'."},"s14":{"notes":"Use the animated flowchart from the PowerPoint if you want the motion; this slide keeps students' screens in step."},"s16":{"correct":1,"explain":"26 > 40 is False, so Python skips the indented block. The last line is outside the block, so it still runs. Challenge: what is the smallest whole-number temperature that prints both lines? (41)","notes":"Scaffold: 'The condition ___ is ___, so the indented line is ___ because ___.'"},"s17":{"correct":1,"explain":"50 > 50 is False, so only the unindented line runs. A means > was read as >=. C means the indentation rule needs another look.","notes":"Hinge decision, now automatic. Correct = Route A. Correct AND 5/5 on Start Strong = Route C. Anything else = Route B (help table). Check the Groups tab, move anyone by hand, then go to the next slide. If fewer than half are correct (see Live answers), re-model the whole class before routes."},"s18":{"notes":"9:00 timer. Each student's screen shows only their own route. Run the help table for Route B first (3 minutes), then circulate."},"s19":{"correct":0,"explain":"Every if, elif and else line ends with a colon.","notes":"20 seconds each. Most accurate pairs: 2 / 1 ePraise points (see the Class tab)."},"s20":{"correct":0,"explain":"35 > 40 is False, so only the unindented line runs."},"s21":{"correct":0,"explain":"if score = 50: uses = (assign) instead of == (compare)."},"s22":{"notes":"Visible progress check for the observer. Compare with the first continuum poll on Live answers. Cold call two students who moved: 'What evidence made you move?' Anyone still at 1 starts the if-else part beside the help table."},"s24":{"correct":1,"explain":"38 >= 40 is False, so the else block runs. The last line is outside both blocks, so it always runs. One of the two blocks runs: never both, never neither."},"s25":{"correct":0,"explain":"40 >= 40 is True. If 40 printed Normal day, the code would be using > instead of >=. Resilience: a program that passes one easy test is not finished. Try to make it fail."},"s26":{"correct":1,"explain":"else never takes a condition, always ends with a colon, and is lowercase because Python is case sensitive.","notes":"Hinge 2 decision. Live answers shows % correct. 75% or more: release the client brief. Below 75%: re-model one if-else, cold call two students to explain, then release."},"s28":{"correct":0,"explain":"95 printed Pass, not Distinction! Python runs only the FIRST True block, so check the highest band first.","notes":"Replaces the Morph slide: students commit to an answer first, which makes the surprise land."},"s30":{"notes":"Based on last year's Academic Performance Evaluation task. Each student sees their own starting task (Route B → Task 1, A → Task 2, C → Task 3). Circulate as a second client: 'What will the program print for exactly 60? Show me.'"},"s32":{"notes":"Responses appear on Live answers: read two strong ones aloud as models."},"s33":{"correct":0,"explain":"10 >= 10 is True, so A prints, then B always prints.","notes":"Exit check: 5 questions. Results are on the Class tab and in the CSV for planning the summative."},"s34":{"correct":1,"explain":"7 % 2 is 1, so the condition is False and the else block prints odd."},"s35":{"correct":3,"explain":"= instead of == is a SyntaxError."},"s36":{"correct":0,"explain":"95 >= 50 is True first, so only Pass prints. The higher band must come first."},"s37":{"correct":1,"explain":"49 and 50 sit either side of the boundary, so they prove >= works."},"s38":{"notes":"Read three responses and link each to SC1 or SC2. Good answers name a specific rule AND give a reason."},"s39":{"notes":"Compare all three continuum polls on Live answers: that is your visible progress for the observer. Ask: SC1, why does an unindented line always run? SC2, when does the else block run? Deeper: why must the highest band come first?"}},"live":{"tierNames":["Route B · Help table","Route A · Saqr-Bot","Route C · Stretch"],"thresholds":[0,100]}};
+
+/* ---------- state ---------- */
+const S = {
+  role: "loading", db: null, user: null, room: null, downloads: null,
+  me: { id: null, name: "" }, connected: false,
+  deck: null, deckLoaded: false, keys: {}, live: clone(DEFAULT_LIVE),
+  respRaw: {}, peers: [],
+  tab: "live", present: false, preview: false,
+  edit: null, editIdx: 0, confirmReset: false,
+  // student
+  joined: false, myAns: {}, draft: {}, sig: "",
+};
+function curResponses() { const o = {}; for (const [k, v] of Object.entries(S.respRaw)) if (v.sid === S.live.sessionId) o[k] = v; return o; }
+const slides = () => (S.deck && S.deck.slides) || [];
+const IMG = {}; // slideId -> {v, data}
+function slideImg(sl) {
+  if (!sl || !sl.img || !S.db) return null;
+  const c = IMG[sl.id];
+  if (c && c.v === sl.img) return c.data ? h("img", { class: "slideimg", src: c.data, alt: sl.title || "Slide" }) : h("div", { class: "imgph", text: "Slide image missing" });
+  if (!c || c.v !== sl.img) {
+    IMG[sl.id] = { v: sl.img, data: null, loading: true };
+    S.db.doc("imgs/" + sl.id).get().then(d => { IMG[sl.id] = { v: sl.img, data: d.exists ? d.data().data : null }; S.sig = ""; if (S.role === "teacher" && !S.preview) render(); else renderStudentIfChanged(); }).catch(() => {});
+  }
+  return h("div", { class: "imgph", text: "Loading slide…" });
+}
+// A PDF export shows every click-reveal at once, so a marked question shows its design only after Show answer.
+const imgShown = sl => !!(sl && sl.img && (!TYPES[sl.type].graded || S.live.reveal));
+function prefetchImgs() { const ss = slides(); const i = S.live.slide || 0; for (const sl of [ss[i + 1], ss[i + 2]]) if (sl) slideImg(sl); }
+const curSlide = () => slides()[Math.min(S.live.slide || 0, Math.max(0, slides().length - 1))];
+
+/* ---------- grading and tiers ---------- */
+function grade(sl, k, a) {
+  if (!sl || !TYPES[sl.type] || !TYPES[sl.type].graded || !k || a == null || a === "") return null;
+  switch (sl.type) {
+    case "mcq": case "tf": return a === k.correct ? 1 : 0;
+    case "multi": {
+      if (!Array.isArray(a)) return 0;
+      const c = new Set(k.correct || []); let hit = 0, wrong = 0;
+      for (const i of a) c.has(i) ? hit++ : wrong++;
+      return c.size ? Math.max(0, (hit - wrong) / c.size) : 0;
+    }
+    case "number": { const n = Number(a); if (!isFinite(n)) return 0; return Math.abs(n - Number(k.correct)) <= Number(k.tol || 0) + 1e-9 ? 1 : 0; }
+    case "short": { const norm = s => String(s).toLowerCase().replace(/\s+/g, "").trim(); return (k.accept || []).some(x => norm(x) === norm(a)) ? 1 : 0; }
+  }
+  return null;
+}
+function scoreOf(ans) {
+  let got = 0, max = 0, n = 0, ggot = 0, gmax = 0, gn = 0, hingeWrong = false;
+  for (const sl of slides()) {
+    const c = grade(sl, S.keys[sl.id], ans[sl.id]);
+    if (c == null) continue;
+    const p = Number(sl.points) || 1; got += c * p; max += p; n++;
+    if (sl.group !== false) { ggot += c * p; gmax += p; gn++; }
+    if (sl.hinge && c < 1) hingeWrong = true;
+  }
+  return { n, pct: max ? Math.round(100 * got / max) : null, gn, gpct: gmax ? Math.round(100 * ggot / gmax) : null, hingeWrong };
+}
+function tierFor(sc) {
+  if (sc.hingeWrong) return 0;
+  if (sc.gn < MIN_ANSWERS || sc.gpct == null) return null;
+  const [a, b] = S.live.thresholds || [50, 80];
+  return sc.gpct < a ? 0 : sc.gpct < b ? 1 : 2;
+}
+function studentList() {
+  const map = new Map();
+  for (const [id, r] of Object.entries(curResponses())) map.set(id, { id, name: r.name || "Student", ans: { ...(r.ans || {}) }, online: false });
+  for (const p of S.peers) {
+    if (p.isMe || p.kind !== "viewer") continue;
+    const pr = p.presence || {};
+    if (pr.role !== "student" || pr.sid !== S.live.sessionId) continue;
+    const id = safeKey(p.by || pr.uid || p.peer);
+    const cur = map.get(id) || { id, ans: {} };
+    cur.name = String(pr.name || cur.name || "Student").slice(0, 40);
+    cur.ans = { ...cur.ans, ...(pr.ans && typeof pr.ans === "object" ? pr.ans : {}) };
+    cur.online = true;
+    map.set(id, cur);
+  }
+  return [...map.values()].map(s => {
+    const sc = scoreOf(s.ans); const auto = tierFor(sc);
+    const ovr = S.live.overrides && S.live.overrides[s.id];
+    const tier = ovr != null ? ovr : (S.live.auto ? auto : (S.live.tiers[s.id] ?? null));
+    return { ...s, ...sc, auto, tier, ovr: ovr != null };
+  }).sort((a, b) => a.name.localeCompare(b.name));
+}
+function correctText(sl, k) {
+  if (sl.type === "mcq") return LET[k.correct] + " " + ((sl.options || [])[k.correct] ?? "");
+  if (sl.type === "tf") return k.correct ? "True" : "False";
+  if (sl.type === "multi") return (k.correct || []).map(i => LET[i]).join(", ");
+  if (sl.type === "number") return String(k.correct) + (Number(k.tol) ? " ± " + k.tol : "");
+  if (sl.type === "short") return (k.accept || []).join(" or ");
+  return "";
+}
+function fmtAns(sl, a) {
+  if (a == null || a === "") return "";
+  if (sl.type === "mcq" || sl.type === "poll") return (sl.options || [])[a] ?? "?";
+  if (sl.type === "tf") return a ? "True" : "False";
+  if (sl.type === "multi") return Array.isArray(a) ? a.map(i => LET[i]).join(", ") : "?";
+  return String(a);
+}
+function summaryFor(sl, list) {
+  const ans = list.map(s => s.ans[sl.id]).filter(a => a != null && a !== "");
+  const out = { total: ans.length, rows: [] };
+  if (sl.type === "mcq" || sl.type === "poll") out.rows = (sl.options || []).map((o, i) => ({ label: LET[i] + "  " + o, n: ans.filter(a => a === i).length }));
+  else if (sl.type === "tf") out.rows = [true, false].map(v => ({ label: v ? "True" : "False", n: ans.filter(a => a === v).length }));
+  else if (sl.type === "multi") out.rows = (sl.options || []).map((o, i) => ({ label: LET[i] + "  " + o, n: ans.filter(a => Array.isArray(a) && a.includes(i)).length }));
+  else if (sl.type === "scale") out.rows = [1, 2, 3, 4, 5].map(v => ({ label: String(v), n: ans.filter(a => a === v).length }));
+  else if (sl.type === "number" || sl.type === "short") {
+    const m = new Map(); for (const a of ans) { const k = String(a).trim().toLowerCase(); m.set(k, (m.get(k) || 0) + 1); }
+    out.rows = [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([label, n]) => ({ label, n }));
+  }
+  return out;
+}
+function isCorrectRow(sl, k, row, i) {
+  if (!k) return false;
+  if (sl.type === "mcq") return k.correct === i;
+  if (sl.type === "tf") return (i === 0) === (k.correct === true);
+  if (sl.type === "multi") return (k.correct || []).includes(i);
+  if (sl.type === "number") return grade(sl, k, row.label) === 1;
+  if (sl.type === "short") return grade(sl, k, row.label) === 1;
+  return false;
+}
+
+/* ---------- db writes: one at a time per document ---------- */
+const writers = {};
+function queueSet(path, getData) {
+  const w = writers[path] || (writers[path] = { busy: false, dirty: false, get: null });
+  w.get = getData;
+  if (w.busy) { w.dirty = true; return; }
+  (async function run() {
+    w.busy = true; w.dirty = false;
+    try { await S.db.doc(path).set(w.get()); }
+    catch (e) { console.warn(path, e); if (e && e.code === "quota_exceeded") toast("Storage is full. Reset the class to clear old answers."); else if (e && e.code === "invalid_argument") toast("You can't change this lesson from this account."); }
+    w.busy = false; if (w.dirty) run();
+  })();
+}
+function setLive(patch) {
+  Object.assign(S.live, patch);
+  queueSet("live/state", () => clone(S.live));
+  render();
+}
+
+/* teacher: persist live answers from the room so they survive students closing the page */
+const persisted = {}; const persistT = {};
+function persistFromPeers() {
+  if (window.HOSTED) return; // on the website each student saves their own answers
+  for (const p of S.peers) {
+    if (p.isMe || p.kind !== "viewer") continue;
+    const pr = p.presence || {};
+    if (pr.role !== "student" || pr.sid !== S.live.sessionId) continue;
+    const id = safeKey(p.by || pr.uid || p.peer);
+    const prev = curResponses()[id] || {};
+    const rec = { name: String(pr.name || prev.name || "Student").slice(0, 40), sid: S.live.sessionId,
+      ans: { ...(prev.ans || {}), ...(pr.ans && typeof pr.ans === "object" ? pr.ans : {}) } };
+    const j = JSON.stringify(rec);
+    if (persisted[id] === j || JSON.stringify({ name: prev.name, sid: prev.sid, ans: prev.ans }) === j) continue;
+    persisted[id] = j;
+    clearTimeout(persistT[id]);
+    persistT[id] = setTimeout(() => queueSet("responses/" + id, () => ({ ...rec, at: Date.now() })), 700);
+  }
+}
+let autoT;
+function autoTiers() {
+  if (S.role !== "teacher" || !S.live.auto) return;
+  const map = {};
+  for (const s of studentList()) if (s.tier != null) map[s.id] = s.tier;
+  if (JSON.stringify(map) === JSON.stringify(S.live.tiers || {})) return;
+  clearTimeout(autoT);
+  autoT = setTimeout(() => setLive({ tiers: map }), 1500);
+}
+function assignNow() {
+  const map = {};
+  for (const s of studentList()) { const t = s.ovr ? s.tier : s.auto; if (t != null) map[s.id] = t; }
+  setLive({ tiers: map });
+  toast("Groups updated for " + Object.keys(map).length + " students");
+}
+
+/* ---------- boot ---------- */
+async function boot() {
+  const c = window.claude;
+  const use = n => (c && c.use ? c.use(n).catch(() => null) : Promise.resolve(null));
+  const [db, user, room, downloads] = await Promise.all([use("db"), use("user"), use("room"), use("downloads")]);
+  S.db = db; S.user = user; S.room = room; S.downloads = downloads;
+  if (!db) { S.role = "nodb"; return render(); }
+  let teacher = false;
+  try { teacher = user ? await user.canEdit() : false; } catch {}
+  S.role = teacher ? "teacher" : "student";
+  try { S.me.id = user ? await user.id() : null; } catch {}
+  if (!S.me.id) { S.me.id = lsGet("tll-local-id") || ("local-" + uid6() + uid6()); lsSet("tll-local-id", S.me.id); }
+  S.me.key = safeKey(S.me.id);
+  try { S.me.name = user && user.name ? (await user.name()) || "" : ""; } catch {}
+  const saved = lsGet("tll-name"); if (saved) S.me.name = saved;
+
+  db.doc("deck/main").onSnapshot(s => { S.deck = s.exists ? s.data() : null; if (!s.metadata.fromCache) S.deckLoaded = true; onData(); }, e => console.warn(e));
+  db.doc("live/state").onSnapshot(s => { if (s.exists) S.live = { ...clone(DEFAULT_LIVE), ...s.data() }; onData(); }, e => console.warn(e));
+  if (teacher) {
+    db.doc("keys/main").onSnapshot(s => { S.keys = (s.exists && s.data().keys) || {}; onData(); }, e => console.warn(e));
+    db.collection("responses").onSnapshot(q => {
+      const r = {}; for (const d of q.docs) { const v = d.data(); if (v) r[d.id] = v; }
+      S.respRaw = r; onData();
+    }, e => console.warn(e));
+  }
+  if (room) {
+    room.onConnection(ok => { S.connected = ok; if (ok && S.role === "student" && S.joined) pushPresence(); render(); }, () => { S.connected = false; render(); });
+    room.onPeers(ch => { S.peers = ch.peers; if (S.role === "teacher") { persistFromPeers(); autoTiers(); renderTeacherLive(); } }, () => {});
+  }
+  if (S.role === "student") { checkJoined(); restoreAnswers(); if (S.joined) pushPresence(); }
+  render();
+}
+function onData() {
+  if (S.role === "student") {
+    if (S.mySid !== S.live.sessionId || S.myCode !== S.live.code) { S.mySid = S.live.sessionId; S.myCode = S.live.code; checkJoined(); restoreAnswers(); if (S.joined) pushPresence(); }
+    return renderStudentIfChanged();
+  }
+  if (S.role === "teacher") autoTiers();
+  render();
+}
+
+/* ---------- student ---------- */
+function checkJoined() {
+  const c = (lsGet("tll-code") || S.typedCode || "").toUpperCase();
+  S.joined = !!S.me.name && !!c && (c === String(S.live.code || "").toUpperCase());
+  if (!S.joined && S.room && S.wasJoined) S.room.presence({ role: null, ans: null, sid: null }).catch(() => {});
+  S.wasJoined = S.joined;
+}
+function restoreAnswers() {
+  let a = {}; try { a = JSON.parse(lsGet("tll-ans:" + S.live.sessionId) || "{}") || {}; } catch {}
+  S.myAns = a;
+}
+function pushPresence() {
+  if (!S.room) return;
+  const data = { role: "student", code: S.live.code, uid: S.me.id, name: S.me.name.slice(0, 40), sid: S.live.sessionId, ans: S.myAns };
+  if (JSON.stringify(data).length > 3900) { toast("Too many long answers to send. Keep written answers shorter."); return; }
+  S.room.presence(data).catch(e => console.warn(e));
+}
+function answer(sl, val) {
+  if (!S.live.open || S.live.reveal) return;
+  if (typeof val === "string") val = val.slice(0, sl.type === "open" ? 200 : 60);
+  S.myAns = { ...S.myAns, [sl.id]: val };
+  lsSet("tll-ans:" + S.live.sessionId, JSON.stringify(S.myAns));
+  pushPresence();
+  S.sig = ""; renderStudentIfChanged();
+}
+function myTier() { const t = S.live.tiers && S.live.tiers[S.me.key]; return t == null ? null : t; }
+function renderStudentIfChanged() {
+  const sl = curSlide();
+  const sig = JSON.stringify([sl && IMG[sl.id] && !!IMG[sl.id].data, S.live.code, S.role, S.preview, S.joined, S.connected, S.live.slide, S.live.open, S.live.reveal, S.live.revealKey, S.live.summary, S.live.tierNames, myTier(), sl, S.myAns[sl && sl.id], S.deck && S.deck.title, S.deckLoaded]);
+  if (sig === S.sig) return; S.sig = sig; render();
+}
+
+/* ---------- rendering ---------- */
+function render(full) {
+  if (!full && S.role === "teacher" && !S.preview && S.tab === "edit" && $("#tleft")) return refreshTeacher();
+  const app = $("#app"); const keepScroll = window.scrollY;
+  app.replaceChildren();
+  if (S.role === "loading") return;
+  if (S.role === "nodb") { app.append(topBar("Can't open the live class here"), h("div", { class: "center" }, h("h2", { text: "Open this lesson from your invite link" }), h("p", { class: "muted", text: "Sign in to Claude and open the link your teacher shared with you. Answers can only be sent from a signed-in account." }))); return; }
+  if (S.role === "teacher" && !S.preview) renderTeacher(app); else renderStudent(app);
+  window.scrollTo(0, keepScroll);
+}
+function topBar(sub, ...right) {
+  return h("div", { class: "top" },
+    h("div", { class: "brand grow" }, (S.deck && S.deck.title) || "Tiered Live Lesson", h("small", { text: sub })),
+    ...right);
+}
+function connPill() {
+  const n = S.peers.filter(p => !p.isMe && (p.presence || {}).role === "student" && p.presence.sid === S.live.sessionId).length;
+  return h("span", { class: "pill" }, h("span", { class: "dot" + (S.connected ? " live" : "") }), S.connected ? n + " student" + (n === 1 ? "" : "s") + " online" : "Not connected");
+}
+
+function stageEl(sl, opts = {}) {
+  if (!sl) return h("div", { class: "stage" }, h("div", { class: "center" }, h("h2", { text: "No slides yet" }), h("p", { class: "muted", text: "Open the Edit lesson tab to write slides or load the sample lesson." })));
+  const k = S.keys[sl.id]; const showKey = opts.showKey;
+  if (imgShown(sl)) {
+    return h("div", { class: "stage hasimg" },
+      TYPES[sl.type].q ? h("div", { class: "kind" }, h("span", { class: "eyebrow", text: TYPES[sl.type].label }), h("span", { class: "pill", style: "margin-left:auto" }, h("span", { class: "dot" + (S.live.open ? " live" : "") }), S.live.open ? "Answers open" : "Answers closed")) : null,
+      slideImg(sl),
+      sl.type === "join" ? h("div", { class: "row", style: "justify-content:space-between" }, h("span", { class: "eyebrow", text: "Join code" }), h("span", { class: "code", style: "font-size:clamp(28px,4vw,48px)", text: S.live.code || "·····" })) : null,
+      showKey && k && TYPES[sl.type].graded ? h("div", { class: "explain" }, h("b", { text: "Answer: " + correctText(sl, k) + ". " }), k.explain || "") : null);
+  }
+  const st = h("div", { class: "stage" },
+    h("div", { class: "kind" }, h("span", { class: "eyebrow", text: TYPES[sl.type].label }), h("span", { class: "eyebrow mono", text: "· " + ((S.live.slide || 0) + 1) + "/" + slides().length }),
+      TYPES[sl.type].q ? h("span", { class: "pill", style: "margin-left:auto" }, h("span", { class: "dot" + (S.live.open ? " live" : "") }), S.live.open ? "Answers open" : "Answers closed") : null),
+    h("h2", { text: sl.title || "" }),
+    sl.body ? h("div", { class: "body", text: sl.body }) : null,
+    sl.code ? h("pre", { class: "codebox", text: sl.code }) : null);
+  if (sl.type === "mcq" || sl.type === "multi" || sl.type === "poll") st.append(h("div", { class: "sopts" }, (sl.options || []).map((o, i) => h("div", { class: "sopt" + (showKey && k && (sl.type === "mcq" ? k.correct === i : sl.type === "multi" && (k.correct || []).includes(i)) ? " correct" : "") }, h("span", { class: "let", text: LET[i] }), o))));
+  if (sl.type === "tf") st.append(h("div", { class: "sopts" }, [true, false].map(v => h("div", { class: "sopt" + (showKey && k && k.correct === v ? " correct" : "") }, h("span", { class: "let", text: v ? "T" : "F" }), v ? "True" : "False"))));
+  if (sl.type === "scale") st.append(h("div", { class: "sopts" }, h("div", { class: "sopt" }, "1 = " + (sl.low || "Not yet")), h("div", { class: "sopt" }, "5 = " + (sl.high || "Very confident"))));
+  if ((sl.type === "number" || sl.type === "short") && showKey && k) st.append(h("div", { class: "sopts" }, h("div", { class: "sopt correct" }, "Answer: " + (sl.type === "number" ? k.correct + (Number(k.tol) ? " ± " + k.tol : "") : (k.accept || []).join(" or ")))));
+  if (showKey && k && k.explain) st.append(h("div", { class: "explain", text: k.explain }));
+  if (sl.type === "join") {
+    const n = studentList().filter(s => s.online).length;
+    st.append(h("div", { style: "margin-top:auto;display:grid;gap:8px" }, h("span", { class: "eyebrow", text: "Join code" }), h("div", { class: "code", text: S.live.code || "·····" }),
+      h("span", { class: "muted", text: "Open the lesson link, type the code and your name. " + n + (n === 1 ? " student has" : " students have") + " joined." })));
+  }
+  if (sl.type === "task") st.append(h("div", { class: "gcols", style: "margin-top:auto" }, [0, 1, 2].map(i => h("div", { class: "gcol c" + i }, h("b", { text: S.live.tierNames[i] }), h("p", { style: "margin:6px 0 0;white-space:pre-wrap;font-size:14px", text: (sl.tasks || [])[i] || "" })))));
+  return st;
+}
+
+function teacherTop() {
+  const n = slides().length;
+  return topBar("Teacher view · only you see this", connPill(),
+    S.live.code ? h("span", { class: "pill codepill", title: "Students type this code to join" }, "Code " + S.live.code) : h("button", { class: "btn sm", onclick: () => setLive({ code: newCode() }) }, "Create join code"),
+    h("button", { class: "btn sm", onclick: () => { S.preview = true; S.sig = ""; render(true); } }, "Preview as student"),
+    h("button", { class: "btn sm primary", disabled: !n, onclick: () => { S.present = true; render(); } }, "Present"),
+    window.__signOut ? h("button", { class: "btn sm", onclick: () => window.__signOut() }, "Sign out") : null);
+}
+function refreshTeacher() {
+  const t = $(".top"); if (t) t.replaceWith(teacherTop());
+  $("#tleft").replaceChildren(...leftParts());
+  const p = $(".present"); if (p) p.remove();
+  if (S.present) $("#app").append(presentEl());
+}
+function renderTeacher(app) {
+  prefetchImgs();
+  app.append(teacherTop());
+  if (!S.room) app.append(h("p", { class: "note", text: "Live answers need the class connection, which isn't available in this view. You can still edit the lesson." }));
+  const left = h("div", { id: "tleft", style: "min-width:0" }, ...leftParts());
+  const tabs = [["live", "Live answers"], ["class", "Class"], ["groups", "Groups"], ["edit", "Edit lesson"]];
+  const panel = h("div", { class: "panel" },
+    h("div", { class: "tabs", role: "tablist" }, tabs.map(([k, l]) => h("button", { class: "tab" + (S.tab === k ? " cur" : ""), role: "tab", "aria-selected": S.tab === k ? "true" : "false", onclick: () => { S.tab = k; if (k === "edit" && !S.edit) startEdit(); render(true); } }, l))),
+    h("div", { class: "pbody", id: "pbody" }));
+  app.append(h("div", { class: "tgrid" }, left, panel));
+  fillPanel();
+  if (S.present) app.append(presentEl());
+}
+function leftParts() {
+  const sl = curSlide(); const n = slides().length;
+  const notes = sl && S.keys[sl.id] && S.keys[sl.id].notes;
+  return [stageEl(sl, { showKey: S.live.reveal }),
+    h("div", { class: "controls" },
+      h("button", { class: "btn", disabled: !n || S.live.slide <= 0, onclick: () => go(-1) }, "← Back"),
+      h("button", { class: "btn primary", disabled: !n || S.live.slide >= n - 1, onclick: () => go(1) }, "Next →"),
+      sl && TYPES[sl.type].q ? h("button", { class: "btn" + (S.live.open ? "" : " on"), onclick: () => setLive({ open: !S.live.open }) }, S.live.open ? "Close answers" : "Reopen answers") : null,
+      sl && TYPES[sl.type].graded ? h("button", { class: "btn" + (S.live.reveal ? " on" : ""), onclick: toggleReveal }, S.live.reveal ? "Hide answer" : "Show answer") : null),
+    h("div", { class: "strip", role: "list" }, slides().map((s, i) => h("button", { class: "thumb" + (i === S.live.slide ? " cur" : ""), onclick: () => goTo(i), "aria-label": "Go to slide " + (i + 1) }, h("b", { text: (i + 1) + " · " + TYPES[s.type].label }), h("span", { text: s.title || "" })))),
+    notes ? h("div", { class: "tnotes" }, h("div", { class: "eyebrow", text: "Your notes · students don't see these" }), notes) : null];
+}
+function renderTeacherLive() {
+  if (S.role !== "teacher" || S.preview) return;
+  const pill = $(".top .pill"); if (pill) pill.replaceWith(connPill());
+  if (S.tab !== "edit") fillPanel();
+  if (S.present) { const p = $(".present"); if (p) p.replaceWith(presentEl()); }
+}
+function fillPanel() {
+  const pb = $("#pbody"); if (!pb) return;
+  pb.replaceChildren(...({ live: liveTab, class: classTab, groups: groupsTab, edit: editTab }[S.tab])().filter(Boolean));
+}
+function go(d) { goTo((S.live.slide || 0) + d); }
+function goTo(i) {
+  i = Math.max(0, Math.min(slides().length - 1, i));
+  if (i === S.live.slide) return;
+  setLive({ slide: i, open: true, reveal: false, revealKey: null, summary: null });
+}
+function toggleReveal() {
+  const sl = curSlide(); if (!sl) return;
+  if (S.live.reveal) return setLive({ reveal: false, revealKey: null, summary: null });
+  setLive({ reveal: true, open: false, revealKey: { id: sl.id, key: S.keys[sl.id] || null }, summary: summaryFor(sl, studentList()) });
+}
+
+function barsEl(sl, sum) {
+  const max = Math.max(1, ...sum.rows.map(r => r.n));
+  const k = S.keys[sl.id];
+  return h("div", { class: "bars" }, sum.rows.map((r, i) => h("div", { class: "bar" + (S.live.reveal && isCorrectRow(sl, k, r, i) ? " ok" : "") },
+    h("div", null, h("div", { class: "lab" }, h("span", { text: r.label })), h("div", { class: "track" }, h("div", { class: "fill", style: "width:" + (100 * r.n / max) + "%" }))),
+    h("div", { class: "n", text: r.n }))));
+}
+function liveTab() {
+  const sl = curSlide(); const list = studentList();
+  if (!sl) return [h("p", { class: "muted", text: "Add slides in the Edit lesson tab." })];
+  if (!TYPES[sl.type].q) {
+    const online = list.filter(s => s.online).length;
+    return [h("div", { class: "stat" }, h("div", null, h("b", { text: list.length }), h("span", { text: "Students this lesson" })), h("div", null, h("b", { text: online }), h("span", { text: "Online now" }))),
+      sl.type === "task" ? h("p", { class: "note", text: "Each student now sees only their own group's task. Check or change groups in the Groups tab." }) : h("p", { class: "muted", text: "This is a content slide. Move to a question slide to collect answers." }),
+      joinHelp()];
+  }
+  const answered = list.filter(s => s.ans[sl.id] != null && s.ans[sl.id] !== "");
+  const waiting = list.filter(s => s.online && !(s.ans[sl.id] != null && s.ans[sl.id] !== ""));
+  const k = S.keys[sl.id];
+  const correct = TYPES[sl.type].graded ? answered.filter(s => grade(sl, k, s.ans[sl.id]) === 1).length : null;
+  const out = [h("div", { class: "stat" },
+    h("div", null, h("b", { text: answered.length + "/" + list.length }), h("span", { text: "Answered" })),
+    correct != null ? h("div", null, h("b", { text: answered.length ? Math.round(100 * correct / answered.length) + "%" : "–" }), h("span", { text: "Correct" })) : null)];
+  if (sl.type === "open") out.push(h("div", { class: "resp" }, answered.length ? answered.map(s => h("div", null, h("b", { text: s.name }), s.ans[sl.id])) : h("p", { class: "muted", text: "Responses appear here as students send them." })));
+  else { const sum = summaryFor(sl, list); out.push(sum.rows.length ? barsEl(sl, sum) : h("p", { class: "muted", text: "Answers appear here as students send them." })); }
+  if (TYPES[sl.type].graded && !S.live.reveal) out.push(h("p", { class: "muted", style: "font-size:14px;margin:0", text: "Correct answers turn green when you press Show answer." }));
+  if (waiting.length) out.push(h("p", { style: "margin:0;font-size:14px" }, h("b", { text: "Still thinking: " }), waiting.map(s => s.name).join(", ")));
+  if (!list.length) out.push(joinHelp());
+  return out;
+}
+function joinHelp() {
+  if (window.HOSTED) return h("div", { class: "note" }, h("b", { text: "How students join. " }),
+    "Students go to " + location.host + location.pathname.replace(/\/$/, "") + " on any device, type the code " + (S.live.code || "(create one above)") + " and their name. No account or install needed.");
+  return h("div", { class: "note" }, h("b", { text: "How students join. " }),
+    "Use the Share menu on this page to invite each student by email as a guest. They open the link while signed in, type their name, and their answers appear here live. Keep this tab open during the lesson so answers are saved.");
+}
+function chip(s) {
+  const t = s.tier; const names = S.live.tierNames;
+  return h("button", { class: "chip " + (t == null ? "gx" : "g" + t) + (s.ovr ? " ovr" : ""), title: "Click to move to another group",
+    onclick: () => { const nx = t == null ? 0 : t === 2 ? null : t + 1; const o = { ...(S.live.overrides || {}) }; if (nx == null) delete o[s.id]; else o[s.id] = nx; setLive({ overrides: o }); autoTiers(); } },
+    t == null ? "Not enough answers" : names[t] + (s.ovr ? " (set by you)" : ""));
+}
+function classTab() {
+  const list = studentList(); const qs = slides().filter(s => TYPES[s.type].graded);
+  if (!list.length) return [h("p", { class: "muted", text: "No students have joined this lesson yet." }), joinHelp()];
+  const head = h("tr", null, h("th", { text: "Student" }), h("th", { text: "Score" }), h("th", { text: "Group" }), qs.map(q => h("th", { title: q.title, text: "Q" + (slides().indexOf(q) + 1) })));
+  const rows = list.map(s => h("tr", null,
+    h("td", null, h("span", { class: "dot" + (s.online ? " live" : ""), style: "display:inline-block;margin-right:6px" }), s.name),
+    h("td", { class: "mono", text: s.pct == null ? "–" : s.pct + "% (" + s.n + ")" }),
+    h("td", null, chip(s)),
+    qs.map(q => { const c = grade(q, S.keys[q.id], s.ans[q.id]); return h("td", { class: "m " + (c == null ? "" : c === 1 ? "mk-y" : c > 0 ? "mk-p" : "mk-n"), title: fmtAns(q, s.ans[q.id]), text: c == null ? "·" : c === 1 ? "✓" : c > 0 ? "½" : "✗" }); })));
+  return [h("div", { class: "tblwrap" }, h("table", null, h("thead", null, head), h("tbody", null, rows))),
+    h("p", { class: "muted", style: "font-size:14px;margin:0", text: "Score counts the marked questions each student answered, weighted by points. Groups use only the questions set to count towards groups, and a wrong hinge answer moves a student to the first group. Hover a mark to see the answer; click a group to move a student by hand." }),
+    h("div", { class: "row" }, S.downloads ? h("button", { class: "btn sm", onclick: exportCsv }, "Download results (CSV)") : null,
+      S.confirmReset ? [h("span", { text: "Clear all answers and groups, and make a new join code?" }), h("button", { class: "btn sm danger", onclick: resetClass }, "Yes, clear"), h("button", { class: "btn sm", onclick: () => { S.confirmReset = false; fillPanel(); } }, "Cancel")]
+        : h("button", { class: "btn sm danger", onclick: () => { S.confirmReset = true; fillPanel(); } }, "Start a new class"))];
+}
+function groupsTab() {
+  const list = studentList(); const names = S.live.tierNames; const th = S.live.thresholds;
+  const bucket = [[], [], []], none = [];
+  for (const s of list) (s.tier == null ? none : bucket[s.tier]).push(s);
+  const thIn = (i) => h("input", { type: "number", id: "th" + i, min: 0, max: 100, value: th[i], style: "width:80px",
+    onchange: e => { const v = Math.max(0, Math.min(100, Number(e.target.value) || 0)); const t = [...th]; t[i] = v; if (t[0] > t[1]) t.sort((a, b) => a - b); setLive({ thresholds: t }); } });
+  return [
+    h("div", { class: "scale", "aria-hidden": "true" },
+      h("div", { style: "width:" + th[0] + "%;background:var(--t0)", text: "0–" + th[0] + "%" }),
+      h("div", { style: "width:" + (th[1] - th[0]) + "%;background:var(--t1)", text: th[0] + "–" + th[1] + "%" }),
+      h("div", { style: "width:" + (100 - th[1]) + "%;background:var(--t2)", text: th[1] + "–100%" })),
+    h("div", { class: "row" }, h("label", { class: "row", for: "th0" }, "Below", thIn(0), "% →", h("b", { text: names[0] })), h("label", { class: "row", for: "th1" }, "From", thIn(1), "% →", h("b", { text: names[2] }))),
+    h("div", { class: "gcols" }, [0, 1, 2].map(i => h("div", { class: "gcol c" + i },
+      h("input", { type: "text", id: "tn" + i, value: names[i], "aria-label": "Group " + (i + 1) + " name", onchange: e => { const nn = [...names]; nn[i] = e.target.value.slice(0, 40) || names[i]; setLive({ tierNames: nn }); } }),
+      h("div", { class: "mono", style: "font-size:13px", text: bucket[i].length + (bucket[i].length === 1 ? " student" : " students") }),
+      h("ul", null, bucket[i].map(s => h("li", null, s.name + (s.ovr ? " ✎" : "") + (s.pct != null ? " · " + s.pct + "%" : ""))))))),
+    none.length ? h("p", { style: "margin:0;font-size:14px" }, h("b", { text: "Not enough grouping answers yet: " }), none.map(s => s.name).join(", "), h("span", { class: "muted", text: ". They get the " + names[1] + " task until then." })) : null,
+    h("label", { class: "row", for: "autoT" }, h("input", { type: "checkbox", id: "autoT", checked: S.live.auto, onchange: e => { setLive({ auto: e.target.checked }); autoTiers(); } }), "Update groups automatically as answers come in"),
+    h("div", { class: "row" },
+      h("button", { class: "btn primary sm", onclick: assignNow }, "Regroup now from scores"),
+      Object.keys(S.live.overrides || {}).length ? h("button", { class: "btn sm", onclick: () => { setLive({ overrides: {} }); autoTiers(); } }, "Clear manual moves") : null),
+    h("p", { class: "muted", style: "font-size:14px;margin:0", text: "Students see their group's name and task on every Group tasks slide. A wrong answer to a hinge question always places a student in the first group. ✎ marks a student you moved by hand." })];
+}
+async function exportCsv() {
+  const list = studentList(); const qs = slides().filter(s => TYPES[s.type].q);
+  const esc = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
+  const lines = [["Student", "Score %", "Marked answers", "Group", ...qs.map((q, i) => "Q" + (slides().indexOf(q) + 1) + " " + q.title)].map(esc).join(",")];
+  for (const s of list) lines.push([s.name, s.pct ?? "", s.n, s.tier == null ? "" : S.live.tierNames[s.tier], ...qs.map(q => fmtAns(q, s.ans[q.id]))].map(esc).join(","));
+  try { await S.downloads.save({ filename: ((S.deck && S.deck.title) || "lesson").replace(/[^\w\- ]/g, "") + " results.csv", data: lines.join("\n") }); toast("Results saved"); }
+  catch (e) { if (e && e.code !== "declined" && e.code !== "cancelled") toast("Couldn't save the file."); }
+}
+async function resetClass() {
+  S.confirmReset = false;
+  const ids = Object.keys(S.respRaw);
+  setLive({ code: newCode(), sessionId: "s" + Date.now().toString(36), tiers: {}, overrides: {}, slide: 0, open: true, reveal: false, revealKey: null, summary: null });
+  for (const id of ids) { try { await S.db.doc("responses/" + id).delete(); } catch {} }
+  S.respRaw = {}; for (const k in persisted) delete persisted[k];
+  toast("Ready for a new class"); render();
+}
+
+/* ---------- editor ---------- */
+function startEdit() { S.edit = { deck: clone(S.deck || { title: "New lesson", slides: [] }), keys: clone(S.keys || {}) }; S.editIdx = Math.min(S.live.slide || 0, Math.max(0, S.edit.deck.slides.length - 1)); }
+function newSlide(type) {
+  const sl = { id: type + "-" + uid6(), type, title: "" };
+  if (type === "mcq" || type === "multi" || type === "poll") sl.options = ["", "", ""];
+  if (TYPES[type].graded) sl.points = 1;
+  if (type === "task") sl.tasks = ["", "", ""];
+  if (type === "scale") { sl.low = "Not yet"; sl.high = "Very confident"; }
+  return sl;
+}
+function editTab() {
+  const E = S.edit; if (!E) { startEdit(); return editTab(); }
+  const ss = E.deck.slides; const i = Math.min(S.editIdx, ss.length - 1); const sl = ss[i];
+  const re = () => fillPanel();
+  const list = h("div", { class: "elist" }, ss.map((s, j) => h("button", { class: j === i ? "cur" : "", onclick: () => { S.editIdx = j; re(); } }, h("b", { class: "mono", text: (j + 1) + " " }), (s.title || TYPES[s.type].label).slice(0, 40))),
+    h("select", { id: "addType", "aria-label": "Add a slide", onchange: e => { if (!e.target.value) return; ss.splice(i + 1, 0, newSlide(e.target.value)); S.editIdx = i + 1; re(); } },
+      h("option", { value: "", text: "+ Add slide…" }), Object.entries(TYPES).map(([k, t]) => h("option", { value: k, text: t.label }))));
+  const form = h("div", { style: "display:grid;gap:10px;min-width:0" });
+  if (sl) {
+    const K = E.keys[sl.id] || (E.keys[sl.id] = {});
+    form.append(h("div", { class: "row" }, h("span", { class: "pill", text: TYPES[sl.type].label }), h("span", { class: "grow" }),
+      h("button", { class: "btn sm", disabled: i === 0, onclick: () => { ss.splice(i - 1, 0, ss.splice(i, 1)[0]); S.editIdx = i - 1; re(); } }, "↑"),
+      h("button", { class: "btn sm", disabled: i === ss.length - 1, onclick: () => { ss.splice(i + 1, 0, ss.splice(i, 1)[0]); S.editIdx = i + 1; re(); } }, "↓"),
+      h("button", { class: "btn sm danger", onclick: () => { ss.splice(i, 1); delete E.keys[sl.id]; S.editIdx = Math.max(0, i - 1); re(); } }, "Delete")));
+    form.append(h("div", { class: "row" }, h("span", { class: "eyebrow", text: sl.img ? "Uses your slide design" : "Text slide" }), h("span", { class: "grow" }),
+      h("label", { class: "btn sm", for: "e-img" }, sl.img ? "Replace image" : "Add slide image", h("input", { type: "file", id: "e-img", accept: "image/png,image/jpeg,image/webp", hidden: true, onchange: async e => { const f = e.target.files[0]; if (!f) return; try { await storeImage(sl, await fileToCanvas(f)); toast("Image added. Save to keep it."); re(); } catch (err) { console.warn(err); toast("Couldn't use that image."); } } })),
+      sl.img ? h("button", { class: "btn sm", onclick: () => { delete sl.img; re(); } }, "Use text instead") : null));
+    if (sl.img) form.append(slideImg(sl));
+    form.append(h("label", { class: "f" }, sl.type === "info" || sl.type === "task" ? "Heading" : "Question", h("textarea", { id: "e-title", rows: 2, style: "min-height:50px", value: sl.title || "", oninput: e => sl.title = e.target.value })));
+    form.append(h("label", { class: "f" }, "Code (optional, shown in a code box)", h("textarea", { id: "e-code", rows: 3, style: "font-family:var(--f-mono)", value: sl.code || "", oninput: e => sl.code = e.target.value })));
+    if (sl.type === "info") form.append(h("label", { class: "f" }, "Text", h("textarea", { id: "e-body", rows: 5, value: sl.body || "", oninput: e => sl.body = e.target.value })));
+    if (sl.type === "poll") form.append(h("div", { class: "eyebrow", text: "Options · no right answer" }),
+        ...sl.options.map((o, j) => h("div", { class: "optrow" }, h("span", { class: "mono", text: LET[j] }),
+          h("input", { type: "text", id: "e-o" + j, value: o, placeholder: "Option " + LET[j], oninput: e => sl.options[j] = e.target.value }),
+          h("button", { class: "btn sm", "aria-label": "Remove option", disabled: sl.options.length <= 2, onclick: () => { sl.options.splice(j, 1); re(); } }, "×"))),
+        sl.options.length < 8 ? h("button", { class: "btn sm", onclick: () => { sl.options.push(""); re(); } }, "+ Option") : null);
+    if (sl.type === "mcq" || sl.type === "multi") {
+      const multi = sl.type === "multi"; if (multi && !Array.isArray(K.correct)) K.correct = [];
+      form.append(h("div", { class: "eyebrow", text: multi ? "Options · tick every correct one" : "Options · pick the correct one" }),
+        ...sl.options.map((o, j) => h("div", { class: "optrow" },
+          h("input", { type: multi ? "checkbox" : "radio", name: "e-correct", id: "e-c" + j, "aria-label": "Correct", checked: multi ? K.correct.includes(j) : K.correct === j,
+            onchange: e => { if (multi) { K.correct = e.target.checked ? [...new Set([...K.correct, j])] : K.correct.filter(x => x !== j); } else K.correct = j; } }),
+          h("input", { type: "text", id: "e-o" + j, value: o, placeholder: "Option " + LET[j], oninput: e => sl.options[j] = e.target.value }),
+          h("button", { class: "btn sm", "aria-label": "Remove option", disabled: sl.options.length <= 2, onclick: () => { sl.options.splice(j, 1); if (multi) K.correct = K.correct.filter(x => x !== j).map(x => x > j ? x - 1 : x); else if (K.correct === j) delete K.correct; else if (K.correct > j) K.correct--; re(); } }, "×"))),
+        sl.options.length < 8 ? h("button", { class: "btn sm", onclick: () => { sl.options.push(""); re(); } }, "+ Option") : null);
+    }
+    if (sl.type === "tf") form.append(h("div", { class: "row" }, h("span", { class: "eyebrow", text: "Correct answer" }), [true, false].map(v => h("label", { class: "row", for: "e-tf" + v }, h("input", { type: "radio", name: "e-tf", id: "e-tf" + v, checked: K.correct === v, onchange: () => K.correct = v }), v ? "True" : "False"))));
+    if (sl.type === "number") form.append(h("div", { class: "row" }, h("label", { class: "f grow" }, "Correct number", h("input", { type: "number", id: "e-num", step: "any", value: K.correct ?? "", oninput: e => K.correct = e.target.value === "" ? undefined : Number(e.target.value) })),
+      h("label", { class: "f grow" }, "Allow ±", h("input", { type: "number", id: "e-tol", step: "any", min: 0, value: K.tol ?? 0, oninput: e => K.tol = Number(e.target.value) || 0 }))));
+    if (sl.type === "short") form.append(h("label", { class: "f" }, "Accepted answers, one per line (case and spaces ignored)", h("textarea", { id: "e-acc", rows: 3, value: (K.accept || []).join("\n"), oninput: e => K.accept = e.target.value.split("\n").map(s => s.trim()).filter(Boolean) })));
+    if (sl.type === "scale") form.append(h("div", { class: "row" }, h("label", { class: "f grow" }, "Label for 1", h("input", { type: "text", id: "e-low", value: sl.low || "", oninput: e => sl.low = e.target.value })), h("label", { class: "f grow" }, "Label for 5", h("input", { type: "text", id: "e-high", value: sl.high || "", oninput: e => sl.high = e.target.value }))));
+    if (sl.type === "task") form.append(...[0, 1, 2].map(j => h("div", { class: "gcol c" + j }, h("label", { class: "f" }, "Task for " + S.live.tierNames[j], h("textarea", { id: "e-t" + j, rows: 3, value: (sl.tasks || [])[j] || "", oninput: e => { sl.tasks = sl.tasks || ["", "", ""]; sl.tasks[j] = e.target.value; } })))));
+    form.append(h("label", { class: "f" }, "Teacher notes (timing, what to say, what to look for)", h("textarea", { id: "e-notes", rows: 3, value: K.notes || "", oninput: e => K.notes = e.target.value })));
+    if (TYPES[sl.type].graded) form.append(
+      h("label", { class: "f" }, "Explanation students see after Show answer", h("textarea", { id: "e-explain", rows: 2, value: K.explain || "", oninput: e => K.explain = e.target.value })),
+      h("label", { class: "f", style: "max-width:140px" }, "Points", h("input", { type: "number", id: "e-pts", min: 1, max: 10, value: sl.points || 1, oninput: e => sl.points = Math.max(1, Math.min(10, Number(e.target.value) || 1)) })),
+      h("label", { class: "row", for: "e-group" }, h("input", { type: "checkbox", id: "e-group", checked: sl.group !== false, onchange: e => sl.group = e.target.checked }), "Counts towards groups"),
+      h("label", { class: "row", for: "e-hinge" }, h("input", { type: "checkbox", id: "e-hinge", checked: !!sl.hinge, onchange: e => sl.hinge = e.target.checked }), "Hinge question: a wrong answer puts the student in the first group"));
+  } else form.append(h("p", { class: "muted", text: "This lesson has no slides yet. Add one from the list, or load the sample lesson below." }));
+  return [
+    h("div", { class: "import" }, h("b", { text: "Use your own slide design" }),
+      h("span", { style: "font-size:14px", text: "Export your deck as a PDF (PowerPoint: File › Save as › PDF. Google Slides: File › Download › PDF) and import it here. Each live slide shows your matching slide, with the answer buttons on students' screens. Marked questions show your design after Show answer, because a PDF shows every click-reveal at once." }),
+      h("label", { class: "btn sm primary", for: "e-pdf", style: "justify-self:start" }, "Import slides (PDF)", h("input", { type: "file", id: "e-pdf", accept: "application/pdf", hidden: true, onchange: e => { const f = e.target.files[0]; if (f) importPdf(f); } })),
+      h("span", { id: "imp-status", class: "mono", style: "font-size:13px" })),
+    h("label", { class: "f" }, "Lesson title", h("input", { type: "text", id: "e-deck", value: E.deck.title || "", oninput: e => E.deck.title = e.target.value })),
+    h("div", { class: "ed" }, list, form),
+    h("div", { class: "row" },
+      h("button", { class: "btn primary", onclick: saveDeck }, "Save lesson"),
+      h("button", { class: "btn", onclick: () => { startEdit(); re(); } }, "Discard changes"),
+      h("button", { class: "btn", onclick: () => { S.edit = clone(SAMPLE); S.editIdx = 0; re(); toast("Sample loaded. Save to use it."); } }, "Load sample lesson")),
+    h("p", { class: "muted", style: "font-size:14px;margin:0", text: "Answer keys are stored separately, so students never receive them before you press Show answer." })];
+}
+/* ---------- your own slide design ---------- */
+const norm = t => String(t || "").toLowerCase().replace(/[’‘]/g, "'").replace(/[^a-z0-9]+/g, "");
+function loadScript(src) { return new Promise((res, rej) => { const sc = document.createElement("script"); sc.src = src; sc.onload = res; sc.onerror = rej; document.head.append(sc); }); }
+async function pdfLib() {
+  if (!window.pdfjsLib) {
+    const base = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+    await loadScript(base + "pdf.min.js"); await loadScript(base + "pdf.worker.min.js");
+  }
+  return window.pdfjsLib;
+}
+async function fileToCanvas(file) {
+  const bmp = await createImageBitmap(file); const c = document.createElement("canvas");
+  const sc = Math.min(1, 1280 / bmp.width); c.width = Math.round(bmp.width * sc); c.height = Math.round(bmp.height * sc);
+  c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height); return c;
+}
+async function storeImage(sl, canvas) {
+  let q = 0.82, data = canvas.toDataURL("image/jpeg", q);
+  while (data.length > 235000 && q > 0.35) { q -= 0.1; data = canvas.toDataURL("image/jpeg", q); }
+  if (data.length > 235000) { const c2 = document.createElement("canvas"); c2.width = Math.round(canvas.width * .75); c2.height = Math.round(canvas.height * .75); c2.getContext("2d").drawImage(canvas, 0, 0, c2.width, c2.height); data = c2.toDataURL("image/jpeg", .6); }
+  const v = uid6();
+  await S.db.doc("imgs/" + sl.id).set({ data, v });
+  sl.img = v; IMG[sl.id] = { v, data };
+}
+async function importPdf(file) {
+  const st = t => { const el = $("#imp-status"); if (el) el.textContent = t; };
+  try {
+    st("Reading your PDF…");
+    const lib = await pdfLib();
+    const pdf = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+    const texts = [];
+    for (let p = 1; p <= pdf.numPages; p++) { const tc = await (await pdf.getPage(p)).getTextContent(); texts.push(norm(tc.items.map(i => i.str).join(" "))); }
+    const ss = S.edit.deck.slides; const useMatch = ss.some(s => s.match);
+    const plan = [];
+    ss.forEach((sl, i) => {
+      let page = null;
+      if (useMatch) { if (sl.match) { const m = norm(sl.match); const ix = texts.findIndex(t => t.includes(m)); if (ix >= 0) page = ix + 1; } }
+      else if (i < pdf.numPages) page = i + 1;
+      if (page) plan.push([sl, page]);
+    });
+    if (!plan.length) { st("No slides matched this PDF. Check it is the same lesson."); return; }
+    const done = {};
+    for (let j = 0; j < plan.length; j++) {
+      const [sl, page] = plan[j]; st("Adding slide " + (j + 1) + " of " + plan.length + "…");
+      if (!done[page]) {
+        const pg = await pdf.getPage(page); const vp0 = pg.getViewport({ scale: 1 }); const vp = pg.getViewport({ scale: 1280 / vp0.width });
+        const c = document.createElement("canvas"); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+        await pg.render({ canvasContext: c.getContext("2d"), viewport: vp }).promise; done[page] = c;
+      }
+      await storeImage(sl, done[page]);
+    }
+    st("Matched " + plan.length + " of " + ss.length + " live slides to your design.");
+    saveDeck();
+  } catch (e) { console.warn(e); st(e && e.code === "quota_exceeded" ? "Storage is full. Remove some slide images and try again." : "Couldn't read that PDF. Try exporting it again."); }
+}
+function saveDeck() {
+  const E = S.edit; const ids = new Set(E.deck.slides.map(s => s.id));
+  if (E.live) { setLive(E.live); delete E.live; }
+  const keys = {}; for (const [k, v] of Object.entries(E.keys)) { if (v) for (const f of ["notes", "explain"]) if (!v[f]) delete v[f]; if (ids.has(k) && v && Object.keys(v).length) keys[k] = v; }
+  const deck = clone(E.deck);
+  S.deck = deck; S.keys = keys;
+  queueSet("deck/main", () => deck); queueSet("keys/main", () => ({ keys }));
+  if ((S.live.slide || 0) >= deck.slides.length) setLive({ slide: Math.max(0, deck.slides.length - 1) });
+  toast("Lesson saved"); render();
+}
+
+/* ---------- present mode ---------- */
+function presentEl() {
+  const sl = curSlide(); const list = studentList();
+  const side = h("div", { class: "panel" }, h("div", { class: "pbody" }, ...(sl && TYPES[sl.type].q && sl.type !== "open" ? [h("div", { class: "eyebrow", text: "Class answers" }), barsEl(sl, summaryFor(sl, list))] : []),
+    h("div", { class: "stat" }, h("div", null, h("b", { text: sl ? list.filter(s => s.ans[sl.id] != null && s.ans[sl.id] !== "").length + "/" + list.length : "0" }), h("span", { text: "Answered" }))),
+    h("div", { class: "row" }, h("button", { class: "btn", onclick: () => go(-1) }, "←"), h("button", { class: "btn primary", onclick: () => go(1) }, "→"),
+      sl && TYPES[sl.type].graded ? h("button", { class: "btn" + (S.live.reveal ? " on" : ""), onclick: toggleReveal }, S.live.reveal ? "Hide answer" : "Show answer") : null,
+      h("button", { class: "btn", onclick: () => { S.present = false; render(); } }, "Exit"))));
+  return h("div", { class: "present", role: "dialog", "aria-label": "Presenting" }, stageEl(sl, { showKey: S.live.reveal }), side);
+}
+document.addEventListener("keydown", e => {
+  if (S.role !== "teacher" || S.preview) return;
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement && document.activeElement.tagName)) return;
+  if (e.key === "ArrowRight") go(1); else if (e.key === "ArrowLeft") go(-1);
+  else if (e.key === "Escape" && S.present) { S.present = false; render(); }
+});
+
+/* ---------- student view ---------- */
+function renderStudent(app) {
+  const back = S.preview ? h("button", { class: "btn sm", onclick: () => { S.preview = false; render(); } }, "Back to teacher view") : null;
+  app.append(topBar(S.joined ? "Joined as " + S.me.name : "Live lesson", h("span", { class: "pill" }, h("span", { class: "dot" + (S.connected ? " live" : "") }), S.connected ? "Connected" : "Connecting…"), back));
+  const wrap = h("div", { class: "swrap" }); app.append(wrap);
+  if (!S.joined) {
+    const codeIn = h("input", { type: "text", id: "s-code", value: S.typedCode || "", maxlength: 8, placeholder: "K7M2Q", autocomplete: "off", autocapitalize: "characters", style: "font:700 26px var(--f-mono);letter-spacing:.15em;text-transform:uppercase" });
+    const inp = h("input", { type: "text", id: "s-name", value: S.me.name, maxlength: 40, placeholder: "First name and last initial", autocomplete: "name" });
+    const err = h("p", { class: "fb no", style: "margin:0", hidden: true });
+    const join = () => {
+      const c = codeIn.value.trim().toUpperCase(); const v = inp.value.trim();
+      const fail = m => { err.textContent = m; err.hidden = false; };
+      if (!S.live.code) return fail("Your teacher hasn't opened the lesson yet. Wait for the code on the board.");
+      if (c !== String(S.live.code).toUpperCase()) { codeIn.focus(); return fail("That code doesn't match the lesson running now. Check the code on the board."); }
+      if (!v) { inp.focus(); return fail("Type your name so your teacher knows who you are."); }
+      S.me.name = v; S.typedCode = c; lsSet("tll-name", v); lsSet("tll-code", c); checkJoined(); pushPresence(); S.sig = ""; render();
+    };
+    for (const el of [codeIn, inp]) el.addEventListener("keydown", e => { if (e.key === "Enter") join(); });
+    codeIn.addEventListener("input", () => { S.typedCode = codeIn.value; });
+    wrap.append(h("div", { class: "scard" }, h("span", { class: "eyebrow", text: "Join the lesson" }), h("h2", { text: (S.deck && S.deck.title) || "Live lesson" }),
+      h("label", { class: "f", for: "s-code" }, "Lesson code from the board"), codeIn,
+      h("label", { class: "f", for: "s-name" }, "Your name, as your teacher knows you"), inp, err, h("button", { class: "btn primary", onclick: join }, "Join lesson"),
+      !S.room ? h("p", { class: "note", text: "You can't send answers from this view. Open the link your teacher shared while signed in." }) : null));
+    return;
+  }
+  const sl = curSlide(); prefetchImgs();
+  if (!sl) { wrap.append(h("div", { class: "scard center" }, h("h2", { text: "You're in" }), h("p", { class: "muted", text: "Waiting for your teacher to start." }))); return; }
+  const q = TYPES[sl.type].q;
+  const card = h("div", { class: "scard" }, h("div", { class: "row" }, h("span", { class: "eyebrow", text: TYPES[sl.type].label }), h("span", { class: "eyebrow mono", text: "· " + ((S.live.slide || 0) + 1) + "/" + slides().length })),
+    imgShown(sl) ? slideImg(sl) : null,
+    !imgShown(sl) || q ? h("h2", { style: imgShown(sl) ? "font-size:22px" : null, text: sl.title || "" }) : null,
+    sl.body && (!imgShown(sl) || sl.type === "open") ? h("p", { style: "margin:0;white-space:pre-wrap;font-size:18px", text: sl.body }) : null,
+    sl.code && (!imgShown(sl) || q) ? h("pre", { class: "codebox", text: sl.code }) : null);
+  wrap.append(card);
+  const mine = S.myAns[sl.id]; const has = mine != null && mine !== "";
+  const locked = !S.live.open || S.live.reveal;
+  const rk = S.live.reveal && S.live.revealKey && S.live.revealKey.id === sl.id ? S.live.revealKey.key : null;
+  const cls = (isSel, isRight) => "opt" + (rk ? (isRight ? " right" : isSel ? " wrong" : "") : isSel ? " sel" : "");
+  if (sl.type === "mcq" || sl.type === "poll") card.append(h("div", { class: "opts" }, (sl.options || []).map((o, i) => h("button", { class: cls(mine === i, rk && rk.correct === i), disabled: locked, "aria-pressed": mine === i ? "true" : "false", onclick: () => answer(sl, i) }, h("span", { class: "let", text: LET[i] }), o))));
+  if (sl.type === "tf") card.append(h("div", { class: "opts" }, [true, false].map(v => h("button", { class: cls(mine === v, rk && rk.correct === v), disabled: locked, "aria-pressed": mine === v ? "true" : "false", onclick: () => answer(sl, v) }, h("span", { class: "let", text: v ? "T" : "F" }), v ? "True" : "False"))));
+  if (sl.type === "multi") {
+    const cur = Array.isArray(mine) ? mine : [];
+    card.append(h("p", { class: "muted", style: "margin:0", text: "Tap every answer that is correct." }), h("div", { class: "opts" }, (sl.options || []).map((o, i) => h("button", { class: cls(cur.includes(i), rk && (rk.correct || []).includes(i)), disabled: locked, "aria-pressed": cur.includes(i) ? "true" : "false",
+      onclick: () => answer(sl, (cur.includes(i) ? cur.filter(x => x !== i) : [...cur, i]).sort()) }, h("span", { class: "let", text: LET[i] }), o))));
+  }
+  if (sl.type === "scale") card.append(h("div", { class: "scale5" }, [1, 2, 3, 4, 5].map(v => h("button", { class: "opt" + (mine === v ? " sel" : ""), disabled: locked, "aria-pressed": mine === v ? "true" : "false", onclick: () => answer(sl, v) }, String(v)))),
+    h("div", { class: "row muted", style: "justify-content:space-between;font-size:14px" }, h("span", { text: "1 · " + (sl.low || "Not yet") }), h("span", { text: "5 · " + (sl.high || "Very confident") })));
+  if (sl.type === "number" || sl.type === "short" || sl.type === "open") {
+    const isOpen = sl.type === "open";
+    const val = S.draft[sl.id] ?? (has ? String(mine) : "");
+    const field = isOpen ? h("textarea", { id: "s-ans-" + sl.id, rows: 4, maxlength: 200, value: val, disabled: locked, placeholder: "Type your answer" })
+      : h("input", { type: sl.type === "number" ? "number" : "text", step: "any", inputmode: sl.type === "number" ? "decimal" : null, id: "s-ans-" + sl.id, maxlength: 60, value: val, disabled: locked, placeholder: sl.type === "number" ? "Type a number" : "Type your answer", style: "font-size:20px;padding:12px" });
+    field.addEventListener("input", e => { S.draft[sl.id] = e.target.value; });
+    const send = () => { let v = field.value.trim(); if (!v) return; if (sl.type === "number") { v = Number(v); if (!isFinite(v)) return toast("Type a number"); } delete S.draft[sl.id]; answer(sl, v); };
+    if (!isOpen) field.addEventListener("keydown", e => { if (e.key === "Enter") send(); });
+    card.append(h("label", { class: "f", for: field.id }, "Your answer"), field, h("button", { class: "btn primary", disabled: locked, onclick: send }, has ? "Update answer" : "Send answer"));
+    if (rk && sl.type !== "open") card.append(h("p", { class: "fb info", style: "margin:0", text: "Answer: " + (sl.type === "number" ? rk.correct : (rk.accept || []).join(" or ")) }));
+  }
+  if (TYPES[sl.type].q) {
+    if (rk && rk.explain) card.append(h("div", { class: "explain", text: rk.explain }));
+    if (rk && has) { const c = grade(sl, rk, mine); card.append(h("div", { class: "fb " + (c === 1 ? "ok" : "no"), text: c === 1 ? "Correct. Well done." : c > 0 ? "Partly right. Check the green answers." : "Not this time. The correct answer is shown in green." })); }
+    else if (S.live.reveal && !has) card.append(h("div", { class: "fb info", text: "You didn't answer this one." }));
+    else if (locked) card.append(h("div", { class: "fb info", text: has ? "Answer locked in." : "Answers are closed for this question." }));
+    else if (has) card.append(h("div", { class: "fb info", text: S.connected ? "Sent. You can change it until your teacher closes answers." : "Saved. It will send when you reconnect." }));
+    if (S.live.reveal && S.live.summary && S.live.summary.rows && S.live.summary.rows.length && sl.type !== "open") {
+      const sum = S.live.summary; const max = Math.max(1, ...sum.rows.map(r => r.n));
+      card.append(h("div", { class: "eyebrow", text: "How the class answered" }), h("div", { class: "bars" }, sum.rows.map((r, i) => h("div", { class: "bar" + (isCorrectRow(sl, rk, r, i) ? " ok" : "") }, h("div", null, h("div", { class: "lab" }, h("span", { text: r.label })), h("div", { class: "track" }, h("div", { class: "fill", style: "width:" + (100 * r.n / max) + "%" }))), h("div", { class: "n", text: r.n })))));
+    }
+  }
+  if (sl.type === "join") card.append(h("div", { class: "fb ok", text: "You're in, " + S.me.name + ". The lesson starts soon." }));
+  if (sl.type === "task") {
+    const t = myTier(); const ti = t == null ? 1 : t;
+    card.append(h("div", { class: "task c" + ti }, h("span", { class: "eyebrow", text: "Your group" }), h("h3", { style: "font-size:24px", text: S.live.tierNames[ti] }), h("p", { text: (sl.tasks || [])[ti] || "Your teacher will tell you your task." })));
+  }
+}
+
+render();
+window.__startLesson = () => boot().catch(e => { console.error(e); S.role = "nodb"; render(); });
+if (!window.HOSTED) window.__startLesson();
+})();
+</script>
+
+<script type="module" src="host.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isTeacherAcct() { return signedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous'; }
+
+    // Join codes point students to their teacher's lesson.
+    match /codes/{code} {
+      allow read: if signedIn();
+      allow create: if isTeacherAcct() && request.resource.data.owner == request.auth.uid;
+      allow update: if isTeacherAcct() && resource.data.owner == request.auth.uid && request.resource.data.owner == request.auth.uid;
+      allow delete: if isTeacherAcct() && resource.data.owner == request.auth.uid;
+    }
+
+    // Each teacher's own lessons and class data.
+    match /spaces/{owner} {
+      function isOwner() { return isTeacherAcct() && request.auth.uid == owner; }
+      match /deck/{d} { allow read: if signedIn(); allow write: if isOwner(); }
+      match /live/{d} { allow read: if signedIn(); allow write: if isOwner(); }
+      match /imgs/{d} { allow read: if signedIn(); allow write: if isOwner(); }
+      // Answer keys and private notes: teacher only.
+      match /keys/{d} { allow read, write: if isOwner(); }
+      // Each student writes only their own answers; only the teacher reads everyone's.
+      match /responses/{uid} {
+        allow read: if isOwner() || (signedIn() && request.auth.uid == uid);
+        allow create, update: if signedIn() && request.auth.uid == uid && request.resource.data.size() <= 12;
+        allow delete: if isOwner();
+      }
+    }
+  }
+}
