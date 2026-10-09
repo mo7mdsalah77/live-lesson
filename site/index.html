@@ -12,6 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=JetBrains+Mono:wght@500&display=swap">
 <style>
+.question-picture img{max-height:230px;width:100%;object-fit:contain;border-radius:10px}.voter-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}.voter-chips .pill{font-size:12px;padding:2px 6px}.leaderboard ol{list-style:none;padding:0;display:grid;gap:8px}.leaderboard li{display:grid;grid-template-columns:1fr auto;gap:5px;background:var(--soft);padding:10px;border-radius:8px}.leaderboard small{grid-column:1/-1}.leaderboard h3{margin:0 0 10px}
 /* Layout: teacher = slide stage left + tabbed control panel right; student = one focused card. Exercise-book paper ground. */
 :root{
   --paper:#F3F5F9; --card:#FFFFFF; --ink:#16213A; --muted:#5A6580; --line:#D8DEEA; --soft:#E9EDF5;
@@ -94,12 +95,12 @@ label.f{display:grid;gap:4px;font-size:14px;font-weight:700}
 
 /* bars */
 .bars{display:grid;gap:8px}
-.bar{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:8px;align-items:center}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
 .bar .lab{font-size:14px;display:flex;justify-content:space-between;gap:8px;margin-bottom:3px}
 .bar .track{height:12px;background:var(--soft);border-radius:6px;overflow:hidden}
 .bar .fill{height:100%;background:var(--t1);border-radius:6px;transition:width .3s}
 .bar.ok .fill{background:var(--good)}
-.bar .n{font-family:var(--f-mono);text-align:right;font-weight:700}
+.bar .n{white-space:nowrap;font-family:var(--f-mono);text-align:right;font-weight:700}
 .stat{display:flex;gap:18px;flex-wrap:wrap}
 .stat div{display:grid}
 .stat b{font:800 26px var(--f-display);font-variant-numeric:tabular-nums}
@@ -188,8 +189,9 @@ pre.codebox{margin:0;background:var(--soft);border:1px solid var(--line);border-
 <div class="toast" id="toast" hidden></div>
 
 <script type="module">
-import * as nourPolicy from "./presentation-state.js?v=nour-1.1";
+import * as nourPolicy from "./presentation-state.js?v=nour-1.2";
 window.NOUR_POLICY = nourPolicy;
+import {rankQuiz, initials} from "./quiz-ranking.js?v=nour-1.2";
 (() => {
 "use strict";
 const {activationState, acceptingAnswers, remainingSeconds, showsResults, publicLiveState, hasAnswerKey} = window.NOUR_POLICY;
@@ -252,7 +254,7 @@ const S = {
   tab: "live", present: false, preview: false,
   edit: null, editIdx: 0, confirmReset: false,
   // student
-  joined: false, myAns: {}, draft: {}, sig: "",
+  joined: false, myAns: {}, answerTimes: {}, roundStarts: {}, draft: {}, sig: "",
 };
 function curResponses() { const o = {}; for (const [k, v] of Object.entries(S.respRaw)) if (v.sid === S.live.sessionId) o[k] = v; return o; }
 const slides = () => (S.deck && S.deck.slides) || [];
@@ -307,7 +309,7 @@ function tierFor(sc) {
 }
 function studentList() {
   const map = new Map();
-  for (const [id, r] of Object.entries(curResponses())) map.set(id, { id, name: r.name || "Student", ans: { ...(r.ans || {}) }, online: false });
+  for (const [id, r] of Object.entries(curResponses())) map.set(id, { id, name: r.name || "Student", ans: { ...(r.ans || {}) }, answerTimes: { ...(r.answerTimes || {}) }, online: false });
   for (const p of S.peers) {
     if (p.isMe || p.kind !== "viewer") continue;
     const pr = p.presence || {};
@@ -316,6 +318,7 @@ function studentList() {
     const cur = map.get(id) || { id, ans: {} };
     cur.name = String(pr.name || cur.name || "Student").slice(0, 40);
     cur.ans = { ...cur.ans, ...(pr.ans && typeof pr.ans === "object" ? pr.ans : {}) };
+    cur.answerTimes = { ...(cur.answerTimes || {}), ...(pr.answerTimes || {}) };
     cur.online = true;
     map.set(id, cur);
   }
@@ -352,6 +355,10 @@ function summaryFor(sl, list) {
     const m = new Map(); for (const a of ans) { const k = String(a).trim().toLowerCase(); m.set(k, (m.get(k) || 0) + 1); }
     out.rows = [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([label, n]) => ({ label, n }));
   }
+  if (sl.type === "poll") out.rows.forEach((row,index) => {
+    row.percent = out.total ? Math.round(row.n / out.total * 100) : 0;
+    row.members = list.filter(student => student.ans[sl.id] === index).map(student => ({ name:student.name, initials:initials(student.name) }));
+  });
   return out;
 }
 function isCorrectRow(sl, k, row, i) {
@@ -379,6 +386,7 @@ function queueSet(path, getData) {
 }
 function setLive(patch) {
   if (patch.open === true && !acceptingAnswers(S.live) && curSlide()) patch = { ...activationState(curSlide(), S.live.slide || 0), resultsVisible: S.live.resultsVisible === true, ...patch };
+  if (patch.roundId && patch.questionId) patch.rounds = { ...(S.live.rounds || {}), [patch.questionId]: { id:patch.roundId, startedAt:patch.startedAt, seconds:slides()[patch.slide]?.timerSeconds || 0 } };
   Object.assign(S.live, patch);
   S.live = publicLiveState(S.live);
   queueSet("live/state", () => clone(publicLiveState(S.live)));
@@ -395,10 +403,10 @@ function persistFromPeers() {
     if (pr.role !== "student" || pr.sid !== S.live.sessionId) continue;
     const id = safeKey(p.by || pr.uid || p.peer);
     const prev = curResponses()[id] || {};
-    const rec = { name: String(pr.name || prev.name || "Student").slice(0, 40), sid: S.live.sessionId,
+    const rec = { answerTimes: { ...(prev.answerTimes || {}), ...(pr.answerTimes || {}) }, name: String(pr.name || prev.name || "Student").slice(0, 40), sid: S.live.sessionId,
       ans: { ...(prev.ans || {}), ...(pr.ans && typeof pr.ans === "object" ? pr.ans : {}) } };
     const j = JSON.stringify(rec);
-    if (persisted[id] === j || JSON.stringify({ name: prev.name, sid: prev.sid, ans: prev.ans }) === j) continue;
+    if (persisted[id] === j || JSON.stringify({ answerTimes: prev.answerTimes || {}, name: prev.name, sid: prev.sid, ans: prev.ans }) === j) continue;
     persisted[id] = j;
     clearTimeout(persistT[id]);
     persistT[id] = setTimeout(() => queueSet("responses/" + id, () => ({ ...rec, at: Date.now() })), 700);
@@ -472,17 +480,21 @@ function checkJoined() {
 function restoreAnswers() {
   let a = {}; try { a = JSON.parse(lsGet("tll-ans:" + S.live.sessionId) || "{}") || {}; } catch {}
   S.myAns = a;
+  try { S.roundStarts = JSON.parse(lsGet("nour-round-starts:" + S.live.sessionId) || "{}"); } catch { S.roundStarts = {}; }
+  try { S.answerTimes = JSON.parse(lsGet("nour-times:" + S.live.sessionId) || "{}"); } catch { S.answerTimes = {}; }
 }
 function pushPresence() {
   if (!S.room) return;
-  const data = { role: "student", code: S.live.code, uid: S.me.id, name: S.me.name.slice(0, 40), sid: S.live.sessionId, ans: S.myAns };
-  if (JSON.stringify(data).length > 3900) { toast("Too many long answers to send. Keep written answers shorter."); return; }
+  const data = { role: "student", code: S.live.code, uid: S.me.id, name: S.me.name.slice(0, 40), sid: S.live.sessionId, ans: S.myAns, answerTimes: S.answerTimes };
+  if (!window.HOSTED && JSON.stringify(data).length > 3900) { toast("Too many long answers to send. Keep written answers shorter."); return; }
   S.room.presence(data).catch(e => console.warn(e));
 }
 function answer(sl, val) {
   if (!acceptingAnswers(S.live)) return;
   if (typeof val === "string") val = val.slice(0, sl.type === "open" ? 200 : 60);
   S.myAns = { ...S.myAns, [sl.id]: val };
+  S.answerTimes = { ...S.answerTimes, [sl.id]: { round: S.live.roundId || "", elapsedMs: Math.max(0, Date.now() - (S.roundStarts[S.live.roundId] || Date.now())) } };
+  lsSet("nour-times:" + S.live.sessionId, JSON.stringify(S.answerTimes));
   lsSet("tll-ans:" + S.live.sessionId, JSON.stringify(S.myAns));
   pushPresence();
   S.sig = ""; renderStudentIfChanged();
@@ -496,7 +508,7 @@ function renderStudentIfChanged() {
 
 /* ---------- rendering ---------- */
 function render(full) {
-  if (window.EMBED && window.EMBED.keepEditor && window.EMBED.keepEditor()) return;
+  if (S.role === "teacher" && !S.preview && window.EMBED && window.EMBED.keepEditor && window.EMBED.keepEditor()) return;
   if (!full && S.role === "teacher" && !S.preview && S.tab === "edit" && $("#tleft")) return refreshTeacher();
   const app = $("#app"); const keepScroll = window.scrollY;
   app.replaceChildren();
@@ -518,7 +530,7 @@ function connPill() {
 function stageEl(sl, opts = {}) {
   if (!sl) return h("div", { class: "stage" }, h("div", { class: "center" }, h("h2", { text: "No slides yet" }), h("p", { class: "muted", text: "Open the Edit lesson tab to write slides or load the sample lesson." })));
   const k = S.keys[sl.id]; const showKey = opts.showKey; const open = !opts.preview && acceptingAnswers(S.live);
-  if (imgShown(sl)) {
+  if (imgShown(sl) && !sl.picture) {
     return h("div", { class: "stage hasimg" },
       TYPES[sl.type].q ? h("div", { class: "kind" }, h("span", { class: "eyebrow", text: TYPES[sl.type].label }), h("span", { class: "pill", style: "margin-left:auto" }, h("span", { class: "dot" + (open ? " live" : "") }), open ? "Answers open" : "Answers closed")) : null,
       slideImg(sl),
@@ -531,6 +543,7 @@ function stageEl(sl, opts = {}) {
     h("h2", { text: sl.title || "" }),
     sl.body ? h("div", { class: "body", text: sl.body }) : null,
     sl.code ? h("pre", { class: "codebox", text: sl.code }) : null);
+  if (sl.picture) st.append(pictureEl(sl));
   if (sl.type === "mcq" || sl.type === "multi" || sl.type === "poll") st.append(h("div", { class: "sopts" }, (sl.options || []).map((o, i) => h("div", { class: "sopt" + (showKey && k && (sl.type === "mcq" ? k.correct === i : sl.type === "multi" && (k.correct || []).includes(i)) ? " correct" : "") }, h("span", { class: "let", text: LET[i] }), o))));
   if (sl.type === "tf") st.append(h("div", { class: "sopts" }, [true, false].map(v => h("div", { class: "sopt" + (showKey && k && k.correct === v ? " correct" : "") }, h("span", { class: "let", text: v ? "T" : "F" }), v ? "True" : "False"))));
   if (sl.type === "scale") st.append(h("div", { class: "sopts" }, h("div", { class: "sopt" }, "1 = " + (sl.low || "Not yet")), h("div", { class: "sopt" }, "5 = " + (sl.high || "Very confident"))));
@@ -625,12 +638,21 @@ function updateTimers() {
 }
 
 function barsEl(sl, sum) {
-  const max = Math.max(1, ...sum.rows.map(r => r.n));
+  const max = sl.type === "poll" ? Math.max(1,sum.total) : Math.max(1, ...sum.rows.map(r => r.n));
   const k = S.keys[sl.id];
-  return h("div", { class: "bars" }, sum.rows.map((r, i) => h("div", { class: "bar" + (S.live.reveal && isCorrectRow(sl, k, r, i) ? " ok" : "") },
-    h("div", null, h("div", { class: "lab" }, h("span", { text: r.label })), h("div", { class: "track" }, h("div", { class: "fill", style: "width:" + (100 * r.n / max) + "%" }))),
-    h("div", { class: "n", text: r.n }))));
+  return h("div", {class:"bars"}, sum.rows.map((row,i) => h("div",{class:"bar" + (S.live.reveal && isCorrectRow(sl,k,row,i) ? " ok" : "")},
+    h("div",null,h("div",{class:"lab"},h("span",{text:row.label})),h("div",{class:"track"},h("div",{class:"fill",style:"width:" + 100*row.n/max + "%"})),
+      sl.type === "poll" && sl.pollIdentity !== "hidden" ? h("div",{class:"voter-chips"},(row.members||[]).map(member=>h("span",{class:"pill",title:member.name,text:sl.pollIdentity === "names" ? member.name : member.initials}))) : null),
+    h("div",{class:"n",text:sl.type === "poll" ? row.n + " · " + (row.percent||0) + "%" : row.n}))));
 }
+function leaderboardEl() {
+  const rows = rankQuiz(slides().filter(sl=>hasAnswerKey(sl,S.keys[sl.id])),studentList(),S.keys,S.live.rounds,grade);
+  return h("section",{class:"leaderboard"},h("h3",{text:"Quiz leaderboard"}),
+    rows.length ? h("ol",null,rows.slice(0,10).map(row=>h("li",null,h("b",{text:row.rank + ". " + row.name}),h("span",{class:"mono",text:row.points + " pts"}),h("small",{text:row.accuracy + "% accurate · " + (row.averageMs/1000).toFixed(1) + "s average"})))) : h("p",{class:"muted",text:"Scores appear after students answer a quiz question."}),
+    h("p",{class:"muted small",text:"1,000 accuracy points + up to 500 speed bonus per question, multiplied by its points. Wrong answers score zero. Latest submission time counts. Speed uses the timer duration, or 30 seconds for an untimed question."}));
+}
+function leaderboardShowing(sl = curSlide()) { return !!sl && hasAnswerKey(sl,S.keys[sl.id]) && (S.live.leaderboardVisible == null ? !S.live.open && showsResults(sl,S.live) : S.live.leaderboardVisible); }
+function toggleLeaderboard() { setLive({leaderboardVisible:!leaderboardShowing()}); }
 function liveTab() {
   const sl = curSlide(); const list = studentList();
   if (!sl) return [h("p", { class: "muted", text: "Add slides in the Edit lesson tab." })];
@@ -644,7 +666,7 @@ function liveTab() {
   const waiting = list.filter(s => s.online && !(s.ans[sl.id] != null && s.ans[sl.id] !== ""));
   const k = S.keys[sl.id];
   const correct = hasAnswerKey(sl, S.keys[sl.id]) ? answered.filter(s => grade(sl, k, s.ans[sl.id]) === 1).length : null;
-  const out = [h("div", { class: "stat" },
+  const out = [hasAnswerKey(sl,S.keys[sl.id]) && !S.live.open ? leaderboardEl() : null, h("div", { class: "stat" },
     h("div", null, h("b", { text: answered.length + "/" + list.length }), h("span", { text: "Answered" })),
     correct != null ? h("div", null, h("b", { text: answered.length ? Math.round(100 * correct / answered.length) + "%" : "–" }), h("span", { text: "Correct" })) : null)];
   if (sl.type === "open") out.push(h("div", { class: "resp" }, answered.length ? answered.map(s => h("div", null, h("b", { text: s.name }), s.ans[sl.id])) : h("p", { class: "muted", text: "Responses appear here as students send them." })));
@@ -715,7 +737,7 @@ async function exportCsv() {
 async function resetClass() {
   S.confirmReset = false;
   const ids = Object.keys(S.respRaw);
-  setLive({ code: newCode(), sessionId: "s" + Date.now().toString(36), tiers: {}, overrides: {}, slide: 0, presenting: false, resultsVisible: false, endsAt: null, open: false, reveal: false, revealKey: null, summary: null });
+  setLive({ code: newCode(), sessionId: "s" + Date.now().toString(36), rounds:{}, roundId:null, startedAt:null, leaderboardVisible:false, tiers: {}, overrides: {}, slide: 0, presenting: false, resultsVisible: false, endsAt: null, open: false, reveal: false, revealKey: null, summary: null });
   for (const id of ids) { try { await S.db.doc("responses/" + id).delete(); } catch {} }
   S.respRaw = {}; for (const k in persisted) delete persisted[k];
   toast("Ready for a new class"); render();
@@ -728,6 +750,7 @@ function newSlide(type) {
   if (type === "mcq" || type === "multi" || type === "poll") sl.options = ["", "", ""];
   if (TYPES[type].graded) sl.points = 1;
   if (type === "short") sl.graded = false;
+  if (["mcq","multi","tf","number"].includes(type)) sl.quiz = true;
   sl.resultsMode = "click"; sl.timerSeconds = 0;
   if (type === "task") sl.tasks = ["", "", ""];
   if (type === "scale") { sl.low = "Not yet"; sl.high = "Very confident"; }
@@ -819,6 +842,17 @@ async function storeImage(sl, canvas) {
   await S.db.doc("imgs/" + sl.id).set({ data, v });
   sl.img = v; IMG[sl.id] = { v, data };
 }
+function pictureEl(sl) {
+  const image = slideImg({id:sl.picture.id,img:sl.picture.v,title:sl.title});
+  return h("div",{class:"question-picture"},image);
+}
+async function uploadPicture(sl, file) {
+  if (!/^image\/(png|jpeg|webp)$/.test(file.type)) throw new Error("Choose a PNG, JPEG or WebP picture.");
+  if (file.size > 12 * 1024 * 1024) throw new Error("Choose a picture smaller than 12 MB.");
+  const image = {id:sl.id + "-picture"};
+  await storeImage(image,await fileToCanvas(file));
+  sl.picture = {id:image.id,v:image.img};
+}
 async function importPdf(file) {
   const st = t => { const el = $("#imp-status"); if (el) el.textContent = t; };
   try {
@@ -906,6 +940,10 @@ function renderStudent(app) {
   const sl = curSlide(); prefetchImgs();
   if (!sl) { wrap.append(h("div", { class: "scard center" }, h("h2", { text: "You're in" }), h("p", { class: "muted", text: "Waiting for your teacher to start." }))); return; }
   if (!S.live.presenting) { wrap.append(h("div", {class:"scard center"}, h("h2", {text:"Waiting for your teacher"}), h("p", {class:"muted",text:"Your question will appear when the presentation starts."}))); return; }
+  if (S.live.roundId && !S.roundStarts[S.live.roundId]) {
+    S.roundStarts[S.live.roundId] = Date.now();
+    lsSet("nour-round-starts:" + S.live.sessionId, JSON.stringify(S.roundStarts));
+  }
   const q = TYPES[sl.type].q;
   const card = h("div", { class: "scard" }, h("div", { class: "row" }, h("span", { class: "eyebrow", text: TYPES[sl.type].label }), h("span", { class: "eyebrow mono", text: "· " + ((S.live.slide || 0) + 1) + "/" + slides().length })),
     imgShown(sl) ? slideImg(sl) : null,
@@ -913,6 +951,7 @@ function renderStudent(app) {
     sl.body && (!imgShown(sl) || sl.type === "open") ? h("p", { style: "margin:0;white-space:pre-wrap;font-size:18px", text: sl.body }) : null,
     sl.code && (!imgShown(sl) || q) ? h("pre", { class: "codebox", text: sl.code }) : null);
   wrap.append(card);
+  if (sl.picture) card.append(pictureEl(sl));
   const countdown = timerEl(); if (countdown) card.append(countdown);
   const mine = S.myAns[sl.id]; const has = mine != null && mine !== "";
   const locked = !acceptingAnswers(S.live);
@@ -955,13 +994,13 @@ function renderStudent(app) {
 
 render();
 // Used by the PowerPoint add-in (addin/addin.js).
-window.__lesson = { S, h, slides, goTo, setLive, toggleReveal, toggleResults, stopInteraction, showsResults, acceptingAnswers, remainingSeconds, timerEl, hasAnswerKey, stageEl, barsEl, summaryFor, studentList, newCode, render, TYPES, editTab, startEdit, classTab, groupsTab, liveTab, joinHelp, toast, newSlide, saveDeck };
+window.__lesson = { S, h, slides, goTo, setLive, toggleReveal, toggleResults, stopInteraction, showsResults, acceptingAnswers, remainingSeconds, timerEl, hasAnswerKey, stageEl, barsEl, summaryFor, studentList, newCode, render, TYPES, editTab, startEdit, classTab, groupsTab, liveTab, joinHelp, toast, newSlide, saveDeck, uploadPicture, pictureEl, leaderboardEl, toggleLeaderboard, leaderboardShowing };
 setInterval(updateTimers, 250);
 window.__startLesson = () => boot().catch(e => { console.error(e); S.role = "nodb"; render(); });
 if (!window.HOSTED) window.__startLesson();
 })();
 </script>
 
-<script type="module" src="host.js?v=nour-1.1"></script>
+<script type="module" src="host.js?v=nour-1.2"></script>
 </body>
 </html>

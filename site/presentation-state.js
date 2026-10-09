@@ -2,7 +2,8 @@
 export function activationState(slide, index, now = Date.now()) {
   const seconds = Math.max(0, Math.min(3600, Number(slide.timerSeconds) || 0));
   return { slide: index, questionId: slide.id, presenting: true, open: true, reveal: false,
-    resultsVisible: slide.resultsMode === "immediate", endsAt: seconds ? now + seconds * 1000 : null,
+    resultsVisible: slide.resultsMode === "immediate", leaderboardVisible: null,
+    startedAt: now, roundId: slide.id + ":" + now, endsAt: seconds ? now + seconds * 1000 : null,
     revealKey: null, summary: null, openBefore: null };
 }
 export function acceptingAnswers(live, now = Date.now()) {

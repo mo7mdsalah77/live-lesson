@@ -1,6 +1,6 @@
-import { init as initOffice, signIn, isSlideShow } from "./addin.js?v=nour-1.1";
-import { insertInteraction } from "./insert-interaction.js?v=nour-1.1";
-import { questionForm, validateQuestion } from "./question-form.js?v=nour-1.1";
+import { init as initOffice, signIn, isSlideShow } from "./addin.js?v=nour-1.2";
+import { insertInteraction } from "./insert-interaction.js?v=nour-1.2";
+import { questionForm, validateQuestion } from "./question-form.js?v=nour-1.2";
 export { signIn };
 let page = "list", force = false, selected = null, busy = false;
 let draft = null;
@@ -44,7 +44,7 @@ function edit(slide) {
 }
 async function saveQuestion() {
   const L = window.__lesson;
-  if (busy || !draft) return;
+  if (busy || !draft || draft.uploading) return;
   const problem = validateQuestion(draft);
   if (problem) { L.toast(problem); return; }
   busy = true; redraw();

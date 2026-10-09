@@ -3,6 +3,17 @@ export function questionForm(L, draft, update, save, cancel, busy) {
   const {h} = L, sl = draft.slide, key = draft.key, type = L.TYPES[sl.type];
   const field = (label, property, object = sl, rows = 2) => h("label", {class:"f"}, label, h("textarea", {rows,value:object[property] || "",oninput:e=>object[property]=e.target.value}));
   const nodes = [h("h2", {text:type.label}), field(sl.type === "task" ? "Task heading" : "Your question", "title")];
+  nodes.push(h("label",{class:"btn sm"},draft.uploading ? "Uploading picture…" : sl.picture ? "Replace picture" : "Upload picture",h("input",{type:"file",accept:"image/png,image/jpeg,image/webp",hidden:true,disabled:busy||draft.uploading,"aria-label":"Upload question picture",onchange:async e=>{
+    const file=e.target.files[0];if(!file)return;draft.uploading=true;update();
+    try{await L.uploadPicture(sl,file);}catch(error){L.toast(error.message||"Could not upload the picture.");}
+    finally{draft.uploading=false;update();}
+  }})));
+  if(sl.picture)nodes.push(L.pictureEl(sl),h("button",{class:"btn sm",onclick:()=>{delete sl.picture;update();}},"Remove picture"));
+  if(["mcq","multi"].includes(sl.type))nodes.push(h("label",{class:"row"},h("input",{type:"checkbox",checked:sl.type==="multi",onchange:e=>{
+    if(e.target.checked){sl.type="multi";key.correct=key.correct==null?[]:[key.correct];}
+    else{sl.type="mcq";key.correct=(key.correct||[])[0];}update();
+  }}),"Allow multiple answers"));
+  if(sl.type==="poll")nodes.push(h("label",{class:"f"},"Participants on result bars",h("select",{value:sl.pollIdentity||"initials",onchange:e=>sl.pollIdentity=e.target.value},h("option",{value:"initials",text:"Initials"}),h("option",{value:"names",text:"Full names"}),h("option",{value:"hidden",text:"Hide participants"}))));
   if (sl.options) {
     nodes.push(h("p", {class:"muted",text:type.graded ? "Write the choices and select the correct answer." : "Write the choices students can vote for."}));
     sl.options.forEach((option,i) => nodes.push(h("div", {class:"optrow"},
@@ -23,7 +34,7 @@ export function questionForm(L, draft, update, save, cancel, busy) {
   const advanced=h("details",{class:"lladvanced"},h("summary",{text:"Teaching options"}),field("Supporting text","body"),field("Code (optional)","code",sl,3),field("Private teacher notes","notes",key,3));
   if(type.graded && sl.graded!==false)advanced.append(field("Explanation after revealing the answer","explain",key),h("label",{class:"f"},"Points",h("input",{type:"number",min:1,max:10,value:sl.points||1,oninput:e=>sl.points=Math.max(1,Math.min(10,Number(e.target.value)||1))})),
     h("label",{class:"row"},h("input",{type:"checkbox",checked:sl.group!==false,onchange:e=>sl.group=e.target.checked}),"Counts towards groups"),h("label",{class:"row"},h("input",{type:"checkbox",checked:!!sl.hinge,onchange:e=>sl.hinge=e.target.checked}),"Hinge: wrong answer → support group"));
-  nodes.push(advanced,h("div",{class:"row"},h("button",{class:"btn primary",disabled:busy,onclick:save},busy?"Adding…":draft.isNew?"Add to presentation":"Save question"),h("button",{class:"btn",disabled:busy,onclick:cancel},"Cancel")));
+  nodes.push(advanced,h("div",{class:"row"},h("button",{class:"btn primary",disabled:busy||draft.uploading,onclick:save},busy?"Adding…":draft.isNew?"Add to presentation":"Save question"),h("button",{class:"btn",disabled:busy,onclick:cancel},"Cancel")));
   return nodes;
 }
 export function validateQuestion(draft) {

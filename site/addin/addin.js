@@ -182,16 +182,18 @@ export function render(app) {
     if (q) {
       const answered = students.filter(s => s.ans[sl.id] != null && s.ans[sl.id] !== "").length;
       side.append(h("div", { class: "stat" }, h("div", null, h("b", { text: answered + "/" + students.length }), h("span", { text: "Answered" }))));
-      if (!["open", "short"].includes(sl.type) && L.showsResults(sl,S.live)) side.append(L.barsEl(sl, L.summaryFor(sl, students)));
+      if (!L.leaderboardShowing(sl) && !["open", "short"].includes(sl.type) && L.showsResults(sl,S.live)) side.append(L.barsEl(sl, L.summaryFor(sl, students)));
     }
     side.append(h("div", { class: "row" },
       !fixed ? h("button", { class: "btn", disabled: live <= 0, onclick: () => L.goTo(live - 1), "aria-label": "Back" }, "←") : null,
       !fixed ? h("button", { class: "btn primary", disabled: live >= list.length - 1, onclick: () => L.goTo(live + 1), "aria-label": "Next" }, "→") : null,
       q ? h("button", { class: "btn" + (S.live.open ? "" : " on"), onclick: () => L.setLive({ open: !S.live.open }) }, S.live.open ? "Close answers" : "Reopen answers") : null,
       q && sl.resultsMode !== "hidden" ? h("button", {class:"btn",onclick:L.toggleResults}, S.live.resultsVisible ? "Hide results" : "Show results") : null,
+      sl && L.hasAnswerKey(sl,S.keys[sl.id]) ? h("button",{class:"btn",onclick:L.toggleLeaderboard},L.leaderboardShowing(sl) ? "Hide leaderboard" : "Show leaderboard") : null,
       sl && L.hasAnswerKey(sl, S.keys[sl.id]) ? h("button", { class: "btn" + (S.live.reveal ? " on" : ""), onclick: L.toggleReveal }, S.live.reveal ? "Hide answer" : "Show answer") : null));
   }
   if (editing) side.append(h("p", { class: "muted small", text: fixed ? "This slide holds lesson slide " + (idx + 1) + ". In the slideshow, reaching it moves students there." : "This slide follows the live lesson." }));
+  if (isLive && L.leaderboardShowing(sl)) side.append(L.leaderboardEl());
   if (isLive) side.prepend(L.timerEl() || h("span",{hidden:true}));
   if (isLive && ["open", "short"].includes(sl?.type) && L.showsResults(sl,S.live)) {
     const replies = students.filter(s => s.ans[sl.id] != null && s.ans[sl.id] !== "");

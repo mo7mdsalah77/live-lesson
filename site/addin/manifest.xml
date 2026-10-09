@@ -5,7 +5,7 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:type="ContentApp">
   <Id>aae5001e-6872-4edb-aea5-1351ae3b275d</Id>
-  <Version>1.1.0.0</Version>
+  <Version>1.2.0.0</Version>
   <ProviderName>Nour</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Nour Live Slide"/>
@@ -20,7 +20,7 @@
     <Host Name="Presentation"/>
   </Hosts>
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://mo7mdsalah77.github.io/live-lesson/?addin=1&amp;v=nour-1.1"/>
+    <SourceLocation DefaultValue="https://mo7mdsalah77.github.io/live-lesson/?addin=1&amp;v=nour-1.2"/>
     <RequestedWidth>960</RequestedWidth>
     <RequestedHeight>540</RequestedHeight>
   </DefaultSettings>
