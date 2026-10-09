@@ -1,6 +1,6 @@
-import { init as initOffice, signIn, isSlideShow } from "./addin.js?v=nour-1.2";
-import { insertInteraction } from "./insert-interaction.js?v=nour-1.2";
-import { questionForm, validateQuestion } from "./question-form.js?v=nour-1.2";
+import { init as initOffice, signIn, isSlideShow } from "./addin.js?v=nour-1.3";
+import { insertInteraction } from "./insert-interaction.js?v=nour-1.3";
+import { questionForm, validateQuestion } from "./question-form.js?v=nour-1.3";
 export { signIn };
 let page = "list", force = false, selected = null, busy = false;
 let draft = null;
@@ -99,7 +99,7 @@ export function render(app) {
   } else {
     body.append(h("h2", { text: S.deck?.title || "Your lesson" }),
       h("button", { class: "btn primary", onclick: () => navigate("choose") }, "+ Add interaction"),
-      S.live.code ? h("div", { class: "note", text: "Student join code: " + S.live.code }) : h("button", { class: "btn", onclick: () => L.setLive({ code: L.newCode() }) }, "Create join code"));
+      S.live.code ? h("div", { class: "lljoin" }, L.qrEl(S.live.code), h("div", null, h("span", { class: "eyebrow", text: "Students join with" }), h("b", { class: "mono", text: "#" + S.live.code }), h("span", { class: "muted", text: L.shortSite() }))) : h("button", { class: "btn", onclick: () => L.setLive({ code: L.newCode() }) }, "Create join code"));
     if (linked) body.append(h("div", { class: "note" }, h("b", { text: "Selected slide: " }), linked.title,
       h("button", { class: "btn primary sm", disabled: !isSlideShow(), title: "Starts automatically when this slide is presented", onclick: () => launch(linked) }, "Start interaction")));
     if (!list.length) body.append(h("p", { class: "muted", text: "Choose an interaction, write your question, and click Add to presentation. A new live slide is inserted after your current slide." }));
@@ -111,11 +111,25 @@ export function render(app) {
   app.append(h("div", { class: "llpanel" }, header, nav, body));
 }
 const CSS = `
+.wrap{max-width:none;padding:0}
 .llpanel{position:fixed;inset:0;display:grid;grid-template-rows:auto auto minmax(0,1fr);background:var(--paper);font-size:14px}
-.llhead{padding:14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
-.llnav{display:flex;gap:5px;padding:10px;border-bottom:1px solid var(--line)}
-.llbody{overflow:auto;padding:14px;display:flex;flex-direction:column;gap:14px;min-width:0}
-.llbody h2,.llbody h3{margin:0}.llcard{padding:14px;border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
-.lltypes{display:grid;gap:9px}.lltype{font:inherit;text-align:left;cursor:pointer;border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;gap:5px}.lltype:hover{border-color:var(--accent)}.lltype span{font-size:13px;color:var(--muted)}
-.lladvanced{display:grid;gap:12px}.lladvanced summary{cursor:pointer;font-weight:700;padding:10px 0}.llbody .ed,.llbody .gcols{grid-template-columns:1fr}.llbody .elist{max-height:140px;overflow:auto}.llbody .import{display:none}.llbody .tblwrap{max-width:100%;overflow:auto}.llbody .stat{flex-wrap:wrap}
+.llhead{padding:12px 14px;display:flex;align-items:center;gap:8px;background:var(--card);border-bottom:1px solid var(--line)}
+.llhead b{font-size:16px;flex:1}
+.llhead img{border-radius:6px}
+.llnav{display:flex;gap:0;padding:0 8px;background:var(--card);border-bottom:1px solid var(--line)}
+.llnav .btn{border:0;border-radius:0;background:none;color:var(--muted);border-bottom:2px solid transparent;min-height:40px;padding:6px 10px;margin-bottom:-1px}
+.llnav .btn.on{color:var(--accent);border-bottom-color:var(--accent);background:none}
+.llbody{overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.llbody h2{font-size:18px;margin:0}.llbody h3{font-size:15px;margin:6px 0 0}
+.llbody>.btn.primary{min-height:44px}
+.llcard{padding:12px 14px;border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;gap:8px;background:var(--card);box-shadow:var(--shadow)}
+.llcard>b{font-size:15px}
+.lljoin{display:grid;grid-template-columns:84px minmax(0,1fr);gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;box-shadow:var(--shadow)}
+.lljoin .qr{width:84px;height:auto;border-radius:4px}
+.lljoin div{display:grid;gap:2px;min-width:0}
+.lljoin b{font-size:24px;color:var(--accent);letter-spacing:.06em}
+.lljoin .muted{font-size:12px;word-break:break-all}
+.llbody .joincard{display:none}
+.lltypes{display:grid;gap:8px}.lltype{font:inherit;text-align:left;cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--card);color:var(--ink);display:flex;flex-direction:column;gap:3px;box-shadow:var(--shadow);transition:border-color .15s}.lltype:hover{border-color:var(--accent)}.lltype b{font-size:15px}.lltype span{font-size:13px;color:var(--muted)}
+.lladvanced{display:grid;gap:12px}.lladvanced summary{cursor:pointer;font-weight:600;padding:10px 0}.llbody .ed,.llbody .gcols{grid-template-columns:1fr}.llbody .elist{max-height:140px;overflow:auto}.llbody .import{display:none}.llbody .tblwrap{max-width:100%;overflow:auto}.llbody .stat{flex-wrap:wrap}
 `;

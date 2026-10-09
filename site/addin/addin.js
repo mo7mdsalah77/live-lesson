@@ -14,6 +14,7 @@ let picking = false;
 let workspace = "present";
 let refreshing = false;
 let synced = false, syncT = 0;
+let madeCode = false;
 
 const lsGet = k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
@@ -126,11 +127,13 @@ export function render(app) {
   const isLive = idx === live;
   const sl = idx >= 0 ? list[idx] : null;
   const editing = view !== "read" && !managed;
+  // Every live slide needs a join code for its QR, so make one the first time a lesson has none.
+  if (S.liveLoaded && !S.live.code && !madeCode) { madeCode = true; queueMicrotask(() => L.setLive({ code: L.newCode() })); }
   const n = S.peers.filter(p => !p.isMe && (p.presence || {}).role === "student" && p.presence.sid === S.live.sessionId).length;
 
   const bar = h("div", { class: "ebar" },
     h("img",{src:"./assets/nour-icon-32.png",alt:"",width:24,height:24}), h("b", { class: "ebrand", text: "Nour" }),
-    S.live.code ? h("span", { class: "pill", title: "Students type this code to join" }, "Code ", h("b", { class: "mono", text: S.live.code }))
+    S.live.code ? h("span", { class: "pill", title: "Students type this code to join" }, h("b", { class: "mono", text: "#" + S.live.code }))
       : h("button", { class: "btn sm", onclick: () => L.setLive({ code: L.newCode() }) }, "Create join code"),
     h("span", { class: "pill" }, h("span", { class: "dot" + (S.connected ? " live" : "") }), n + " online"),
     h("span", { class: "grow" }),
@@ -169,7 +172,7 @@ export function render(app) {
 
   if (managed && view !== "read") {
     if (isLive && S.live.presenting) queueMicrotask(stopOwnInteraction);
-    shell(h("div", {class:"emain"}, L.stageEl(sl, {showKey:false,preview:true}), h("div",{class:"eside"}, h("h2",{text:"Slide preview"}), h("p",{class:"muted",text:"Start the slideshow to open this question for student answers."}), h("p",{text:"Results: " + (sl.resultsMode === "immediate" ? "Immediately" : sl.resultsMode === "hidden" ? "Hidden" : "On click")}), sl.timerSeconds ? h("p",{text:"Timer: " + sl.timerSeconds + " seconds"}) : null)));
+    shell(h("div", {class:"emain"}, L.stageEl(sl, {showKey:false,preview:true}), h("div",{class:"eside"}, L.joinCard(), h("h2",{text:"Slide preview"}), h("p",{class:"muted",text:"Start the slideshow to open this question for student answers."}), h("p",{text:"Results: " + (sl.resultsMode === "immediate" ? "Immediately" : sl.resultsMode === "hidden" ? "Hidden" : "On click")}), sl.timerSeconds ? h("p",{text:"Timer: " + sl.timerSeconds + " seconds"}) : null)));
     return;
   }
   const q = sl && L.TYPES[sl.type].q;
@@ -194,12 +197,15 @@ export function render(app) {
   }
   if (editing) side.append(h("p", { class: "muted small", text: fixed ? "This slide holds lesson slide " + (idx + 1) + ". In the slideshow, reaching it moves students there." : "This slide follows the live lesson." }));
   if (isLive && L.leaderboardShowing(sl)) side.append(L.leaderboardEl());
+  // Join QR: large in the side column until results or the leaderboard need the room, then a compact bar on the slide.
+  const busySide = isLive && sl && (L.leaderboardShowing(sl) || (L.TYPES[sl.type].q && L.showsResults(sl, S.live)));
+  if (!busySide) side.prepend(L.joinCard() || h("span", { hidden: true }));
   if (isLive) side.prepend(L.timerEl() || h("span",{hidden:true}));
   if (isLive && ["open", "short"].includes(sl?.type) && L.showsResults(sl,S.live)) {
     const replies = students.filter(s => s.ans[sl.id] != null && s.ans[sl.id] !== "");
     side.append(h("div", { class: "resp" }, replies.map(s => h("div", null, String(s.ans[sl.id])))));
   }
-  const stage = L.stageEl(sl, { showKey: isLive && S.live.reveal });
+  const stage = L.stageEl(sl, { showKey: isLive && S.live.reveal, joinBar: busySide });
   if (view === "read" && isLive && sl.resultsMode !== "immediate" && sl.resultsMode !== "hidden" && !S.live.resultsVisible) {
     stage.title = "Click to show class results";
     stage.addEventListener("click", L.toggleResults, {once:true});
@@ -222,6 +228,7 @@ body{background:var(--paper)}
 .emain{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:10px;min-height:0}
 .emain .stage,.emb>.stage{min-height:0;height:100%;overflow:auto;box-sizing:border-box}
 .eside{display:flex;flex-direction:column;gap:10px;overflow:auto;min-height:0}
+.eside .joincard .qr{max-width:min(100%,46vh)}
 .eside .row .btn{flex:1 1 auto}
 .small{font-size:13px;margin:0}
 .pick .plist{display:grid;gap:6px}

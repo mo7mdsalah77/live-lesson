@@ -10,171 +10,232 @@
 <title>Nour</title>
 <link rel="icon" href="./assets/nour-icon-32.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
-.question-picture img{max-height:230px;width:100%;object-fit:contain;border-radius:10px}.voter-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}.voter-chips .pill{font-size:12px;padding:2px 6px}.leaderboard ol{list-style:none;padding:0;display:grid;gap:8px}.leaderboard li{display:grid;grid-template-columns:1fr auto;gap:5px;background:var(--soft);padding:10px;border-radius:8px}.leaderboard small{grid-column:1/-1}.leaderboard h3{margin:0 0 10px}
-/* Layout: teacher = slide stage left + tabbed control panel right; student = one focused card. Exercise-book paper ground. */
+/* Slido-style look: flat white cards on a light grey page, one brand colour, clear type, results as thick bars.
+   Teacher = slide stage left + tabbed control panel right; student = branded header + one focused card. */
 :root{
-  --paper:#F3F5F9; --card:#FFFFFF; --ink:#16213A; --muted:#5A6580; --line:#D8DEEA; --soft:#E9EDF5;
-  --accent:#0B7A84; --accent-ink:#FFFFFF; --accent-soft:#D7EFF0;
+  --paper:#F4F5F7; --card:#FFFFFF; --ink:#1B2230; --muted:#5E6878; --line:#E1E4EA; --soft:#EEF0F4;
+  --accent:#0B7A84; --accent-2:#0A6A73; --accent-ink:#FFFFFF; --accent-soft:#DDF0F1; --gold:#E2A132; --gold-soft:#FBF0DA;
   --good:#1E8A4C; --good-soft:#DDF2E5; --bad:#C23A3A; --bad-soft:#F8E0E0; --warn:#B7791F;
   --t0:#D25A22; --t0-soft:#FBE6DB; --t1:#2B66D1; --t1-soft:#DFE8FA; --t2:#7344C2; --t2-soft:#ECE3FA;
-  --grid:rgba(43,102,209,.06);
-  --f-display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
-  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.08);
+  --shadow-lg:0 12px 32px rgba(16,24,40,.12);
+  --f-display:"Inter", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Inter", "Segoe UI", system-ui, sans-serif;
   --f-mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
   --r:10px;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --paper:#0E1320; --card:#161D2D; --ink:#E6EBF5; --muted:#99A4BB; --line:#2A3449; --soft:#1E2639;
-  --accent:#3CBEC7; --accent-ink:#06262A; --accent-soft:#13383C;
+  --paper:#0F141D; --card:#171E2A; --ink:#E7EBF3; --muted:#9AA4B6; --line:#2A3344; --soft:#1F2735;
+  --accent:#3CBEC7; --accent-2:#5FCFD6; --accent-ink:#06262A; --accent-soft:#13383C; --gold:#F0B755; --gold-soft:#3A2E17;
   --good:#4CC27F; --good-soft:#163526; --bad:#EE7272; --bad-soft:#3A1C1E; --warn:#E3A84A;
   --t0:#F08954; --t0-soft:#3A2418; --t1:#6E9BF0; --t1-soft:#1B2945; --t2:#A985EB; --t2-soft:#2A2042;
-  --grid:rgba(110,155,240,.05); color-scheme:dark}}
+  --shadow:0 1px 2px rgba(0,0,0,.4); --shadow-lg:0 12px 32px rgba(0,0,0,.5); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --paper:#0E1320; --card:#161D2D; --ink:#E6EBF5; --muted:#99A4BB; --line:#2A3449; --soft:#1E2639;
-  --accent:#3CBEC7; --accent-ink:#06262A; --accent-soft:#13383C;
+  --paper:#0F141D; --card:#171E2A; --ink:#E7EBF3; --muted:#9AA4B6; --line:#2A3344; --soft:#1F2735;
+  --accent:#3CBEC7; --accent-2:#5FCFD6; --accent-ink:#06262A; --accent-soft:#13383C; --gold:#F0B755; --gold-soft:#3A2E17;
   --good:#4CC27F; --good-soft:#163526; --bad:#EE7272; --bad-soft:#3A1C1E; --warn:#E3A84A;
   --t0:#F08954; --t0-soft:#3A2418; --t1:#6E9BF0; --t1-soft:#1B2945; --t2:#A985EB; --t2-soft:#2A2042;
-  --grid:rgba(110,155,240,.05); color-scheme:dark}
+  --shadow:0 1px 2px rgba(0,0,0,.4); --shadow-lg:0 12px 32px rgba(0,0,0,.5); color-scheme:dark}
 *{box-sizing:border-box}
 html,body{min-height:100%}
-body{background:var(--paper);color:var(--ink);font:16px/1.5 var(--f-body);
-  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px}
+body{background:var(--paper);color:var(--ink);font:15px/1.5 var(--f-body);-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
-h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
-.wrap{padding-inline:16px;padding-block:14px 40px;max-width:1360px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.2;letter-spacing:-.01em}
+a{color:var(--accent)}
+.wrap{padding-inline:16px;padding-block:0 40px;max-width:1360px;margin:0 auto}
 .mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
 .muted{color:var(--muted)}
-.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
-.btn{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:6px;min-height:40px}
-.btn:hover{border-color:var(--accent)}
-.btn:focus-visible,.chip:focus-visible,.opt:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,.tab:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.eyebrow{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 16px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;transition:background .15s,border-color .15s,box-shadow .15s}
+.btn:hover{border-color:var(--muted);background:var(--soft)}
+.btn:focus-visible,.chip:focus-visible,.opt:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,.tab:focus-visible,.thumb:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 45%,transparent);outline-offset:2px}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.btn.on{background:var(--accent-soft);border-color:var(--accent)}
+.btn.primary:hover{background:var(--accent-2);border-color:var(--accent-2)}
+.btn.on{background:var(--accent-soft);border-color:var(--accent);color:var(--ink)}
 .btn.danger{color:var(--bad)}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.btn.sm{min-height:32px;padding:4px 10px;font-size:14px}
-input[type=text],input[type=number],textarea,select{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{min-height:32px;padding:4px 12px;font-size:14px}
+.btn.lg{min-height:52px;font-size:17px;padding:10px 22px;border-radius:10px}
+.btn.block{width:100%}
+input[type=text],input[type=number],textarea,select{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 12px;width:100%}
+input[type=text]:focus,input[type=number]:focus,textarea:focus,select:focus{border-color:var(--accent)}
+input[type=radio],input[type=checkbox]{accent-color:var(--accent);width:18px;height:18px}
 textarea{resize:vertical;min-height:70px}
-label.f{display:grid;gap:4px;font-size:14px;font-weight:700}
+label.f{display:grid;gap:5px;font-size:14px;font-weight:600}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .grow{flex:1;min-width:0}
 
-/* top bar */
-.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:4px 14px;border-bottom:2px solid var(--ink);margin-bottom:16px}
-.brand{font-family:var(--f-display);font-weight:800;font-size:22px;letter-spacing:-.01em}
-.brand small{display:block;font:700 12px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:13px;font-weight:700;background:var(--soft)}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+/* top bar (teacher): white app header */
+.top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;margin:0 -16px 18px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+.brand{font-family:var(--f-display);font-weight:700;font-size:18px;display:flex;align-items:center;gap:10px;line-height:1.2}
+.brand small{display:block;font:500 12px var(--f-body);color:var(--muted)}
+.brand img{border-radius:8px;flex:none}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 10px;font-size:13px;font-weight:600;background:var(--soft)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
 .dot.live{background:var(--good);box-shadow:0 0 0 3px var(--good-soft)}
 
+/* student header: brand-coloured bar with the event name and #code, like a Slido event */
+.sbar{margin:0 -16px 18px;background:var(--accent);color:var(--accent-ink);padding:12px 16px}
+.sbar .in{max-width:720px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.sbar img{border-radius:8px;background:#fff;padding:2px;flex:none}
+.sbar b{font-size:17px;display:block;line-height:1.25}
+.sbar small{display:block;opacity:.85;font-size:13px}
+.sbar .pill{background:rgba(255,255,255,.18);color:inherit}
+.sbar .dot.live{background:#7CF0A7;box-shadow:0 0 0 3px rgba(124,240,167,.25)}
+.sbar .btn{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.35);color:inherit}
+
+/* join landing: one big code box, the Slido way */
+.hero{max-width:520px;margin:6vh auto 0;display:grid;gap:18px;text-align:center}
+.hero .logo{justify-self:center;width:72px;height:72px;border-radius:18px;box-shadow:var(--shadow-lg)}
+.hero h1{font-size:clamp(28px,6vw,40px);font-weight:800;letter-spacing:-.02em}
+.hero p{margin:0}
+.joinbox{background:var(--card);border-radius:14px;box-shadow:var(--shadow-lg);padding:20px;display:grid;gap:12px;text-align:left}
+.codefield{display:flex;align-items:center;border:2px solid var(--line);border-radius:10px;background:var(--card);padding-left:14px}
+.codefield:focus-within{border-color:var(--accent)}
+.codefield span{font:700 24px var(--f-mono);color:var(--muted)}
+.codefield input[type=text]{border:0;font:700 24px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;padding:12px 10px;background:transparent}
+.codefield input:focus-visible{outline:none}
+.hero .foot{font-size:14px;color:var(--muted)}
+
 /* teacher grid */
-.tgrid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px;align-items:start}
+.tgrid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:20px;align-items:start}
 @media (max-width:900px){.tgrid{grid-template-columns:1fr}}
-.stage{background:var(--card);border:1px solid var(--line);border-radius:14px;min-height:min(52vw,480px);max-width:100%;padding:clamp(18px,3.5vw,40px);display:flex;flex-direction:column;gap:14px;position:relative;min-width:0}
+.stage{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);min-height:min(52vw,480px);max-width:100%;padding:clamp(18px,3.2vw,40px);display:flex;flex-direction:column;gap:14px;position:relative;min-width:0}
 .stage .kind{display:flex;gap:8px;align-items:center}
-.stage h2{font-size:clamp(22px,3vw,38px);font-weight:800;letter-spacing:-.015em}
+.stage h2{font-size:clamp(22px,2.8vw,36px);font-weight:700;letter-spacing:-.02em}
 .stage .body{font-size:clamp(16px,1.6vw,20px);white-space:pre-wrap;max-width:60ch}
 .sopts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:auto}
-.sopt{border:2px solid var(--line);border-radius:10px;padding:12px 14px;font-size:clamp(15px,1.5vw,19px);font-weight:700;display:flex;gap:10px;align-items:center}
-.sopt .let{font-family:var(--f-mono);font-size:13px;width:26px;height:26px;border-radius:6px;display:grid;place-items:center;background:var(--soft);flex:none}
+.sopt{border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:clamp(15px,1.5vw,19px);font-weight:600;display:flex;gap:12px;align-items:center;background:var(--card)}
+.sopt .let,.opt .let{font:600 13px var(--f-body);width:28px;height:28px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--line);color:var(--muted);flex:none}
 .sopt.correct{border-color:var(--good);background:var(--good-soft)}
+.sopt.correct .let{background:var(--good);border-color:var(--good);color:#fff}
 .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
-.strip{display:flex;gap:6px;overflow-x:auto;padding-block:10px 4px}
-.thumb{flex:none;width:92px;border:1px solid var(--line);border-radius:8px;background:var(--card);padding:6px 8px;text-align:left;cursor:pointer;font-size:12px;line-height:1.25}
-.thumb b{display:block;font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.strip{display:flex;gap:8px;overflow-x:auto;padding-block:12px 4px}
+.thumb{flex:none;width:112px;border:1px solid var(--line);border-radius:8px;background:var(--card);padding:8px 10px;text-align:left;cursor:pointer;font-size:12px;line-height:1.3;box-shadow:var(--shadow)}
+.thumb b{display:block;font-size:11px;color:var(--muted);font-weight:600;margin-bottom:2px}
 .thumb span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .thumb.cur{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
 
-.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;min-width:0}
-.tabs{display:flex;border-bottom:1px solid var(--line);overflow-x:auto}
-.tab{background:none;border:0;padding:12px 14px;font-weight:700;cursor:pointer;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
-.tab.cur{color:var(--ink);border-bottom-color:var(--accent)}
+/* join banner on the projected slide: "Join at … #CODE" + QR */
+.joinbar{display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:2px}
+.joinbar .qr{width:clamp(64px,8vw,104px);height:auto;flex:none;border-radius:6px}
+.joinbar .jt{display:grid;gap:2px;min-width:0}
+.joinbar .jt span{font-size:clamp(13px,1.2vw,16px);color:var(--muted)}
+.joinbar .jt b{font-size:clamp(16px,1.6vw,22px);word-break:break-all}
+.joinbar .jcode{margin-left:auto;font:700 clamp(22px,3vw,40px)/1 var(--f-mono);letter-spacing:.06em;color:var(--accent);white-space:nowrap}
+.joincard{display:grid;gap:10px;justify-items:center;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.joincard .qr{width:100%;max-width:240px;height:auto;border-radius:8px}
+.joincard .jcode{font:700 clamp(26px,4vw,44px)/1 var(--f-mono);letter-spacing:.08em;color:var(--accent)}
+.joincard .jsite{font-size:14px;color:var(--muted);word-break:break-all}
+.qr{display:block;background:#fff}
+.joinsplit{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:clamp(16px,3vw,40px);align-items:center;margin-top:auto}
+.joinsplit .qr{width:clamp(140px,20vw,260px);height:auto;border-radius:10px;box-shadow:var(--shadow)}
+
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);min-width:0}
+.tabs{display:flex;border-bottom:1px solid var(--line);overflow-x:auto;padding-inline:6px}
+.tab{background:none;border:0;padding:13px 12px;font-weight:600;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap;margin-bottom:-1px}
+.tab:hover{color:var(--ink)}
+.tab.cur{color:var(--accent);border-bottom-color:var(--accent)}
 .pbody{padding:16px;display:grid;gap:14px}
 
-/* bars */
-.bars{display:grid;gap:8px}
-.bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
-.bar .lab{font-size:14px;display:flex;justify-content:space-between;gap:8px;margin-bottom:3px}
-.bar .track{height:12px;background:var(--soft);border-radius:6px;overflow:hidden}
-.bar .fill{height:100%;background:var(--t1);border-radius:6px;transition:width .3s}
+/* results bars: label, thick bar, count and percent */
+.bars{display:grid;gap:12px}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px}
+.bar .lab{font-size:15px;font-weight:600;display:flex;justify-content:space-between;gap:8px;margin-bottom:6px}
+.bar .track{height:14px;background:var(--soft);border-radius:999px;overflow:hidden}
+.bar .fill{height:100%;background:var(--accent);border-radius:999px;transition:width .4s cubic-bezier(.2,.8,.2,1);min-width:0}
 .bar.ok .fill{background:var(--good)}
-.bar .n{white-space:nowrap;font-family:var(--f-mono);text-align:right;font-weight:700}
-.stat{display:flex;gap:18px;flex-wrap:wrap}
+.bar.ok .lab{color:var(--good)}
+.bar .n{white-space:nowrap;font-weight:700;text-align:right;font-variant-numeric:tabular-nums;line-height:14px;align-self:start;margin-top:28px}
+.stat{display:flex;gap:22px;flex-wrap:wrap}
 .stat div{display:grid}
-.stat b{font:800 26px var(--f-display);font-variant-numeric:tabular-nums}
-.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
-.resp{display:grid;gap:6px;max-height:320px;overflow:auto}
-.resp div{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px}
+.stat b{font:700 28px var(--f-display);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+.resp{display:grid;gap:8px;max-height:320px;overflow:auto}
+.resp div{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;background:var(--card);box-shadow:var(--shadow)}
 .resp b{display:block;font-size:12px;color:var(--muted)}
+
+.question-picture img{max-height:230px;width:100%;object-fit:contain;border-radius:10px}
+.voter-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.voter-chips .pill{font-size:12px;padding:2px 7px}
+.leaderboard ol{list-style:none;padding:0;margin:0;display:grid;gap:8px;counter-reset:none}
+.leaderboard li{display:grid;grid-template-columns:1fr auto;gap:2px 8px;background:var(--soft);padding:10px 12px;border-radius:10px}
+.leaderboard li:first-child{background:var(--gold-soft);box-shadow:inset 0 0 0 2px var(--gold)}
+.leaderboard small{grid-column:1/-1;color:var(--muted)}
+.leaderboard h3{margin:0 0 10px}
 
 /* class table */
 .tblwrap{overflow-x:auto}
 table{border-collapse:collapse;width:100%;font-size:14px}
-th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
-th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+th,td{padding:8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600}
 td.m{font-family:var(--f-mono);text-align:center}
 .mk-y{color:var(--good);font-weight:700}.mk-n{color:var(--bad);font-weight:700}.mk-p{color:var(--warn);font-weight:700}
-.chip{border:0;border-radius:999px;padding:3px 10px;font-size:13px;font-weight:700;cursor:pointer}
+.chip{border:0;border-radius:999px;padding:3px 10px;font-size:13px;font-weight:600;cursor:pointer}
 .g0{background:var(--t0-soft);color:var(--t0)}.g1{background:var(--t1-soft);color:var(--t1)}.g2{background:var(--t2-soft);color:var(--t2)}.gx{background:var(--soft);color:var(--muted)}
 .chip.ovr{box-shadow:inset 0 0 0 2px currentColor}
 
 /* groups */
 .gcols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 @media (max-width:560px){.gcols{grid-template-columns:1fr}}
-.gcol{border-radius:10px;padding:10px;border-top:5px solid}
+.gcol{border-radius:10px;padding:12px;border-top:4px solid}
 .gcol.c0{background:var(--t0-soft);border-color:var(--t0)}.gcol.c1{background:var(--t1-soft);border-color:var(--t1)}.gcol.c2{background:var(--t2-soft);border-color:var(--t2)}
-.gcol input{font-weight:700;margin-bottom:6px;font-size:14px;padding:6px 8px}
+.gcol input{font-weight:600;margin-bottom:6px;font-size:14px;padding:6px 8px}
 .gcol ul{margin:0;padding-left:18px;font-size:14px}
-.scale{position:relative;height:28px;border-radius:6px;overflow:hidden;display:flex;font:700 12px var(--f-mono)}
+.scale{position:relative;height:28px;border-radius:999px;overflow:hidden;display:flex;font:600 12px var(--f-body)}
 .scale div{display:grid;place-items:center;color:#fff}
 
 /* editor */
-.ed{display:grid;grid-template-columns:150px minmax(0,1fr);gap:14px}
+.ed{display:grid;grid-template-columns:170px minmax(0,1fr);gap:14px}
 @media (max-width:560px){.ed{grid-template-columns:1fr}}
 .elist{display:grid;gap:4px;align-content:start;max-height:520px;overflow:auto}
-.elist button{text-align:left;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 8px;font-size:13px;cursor:pointer}
+.elist button{text-align:left;border:1px solid transparent;background:var(--soft);border-radius:8px;padding:7px 9px;font-size:13px;cursor:pointer}
+.elist button:hover{border-color:var(--line)}
 .elist button.cur{border-color:var(--accent);background:var(--accent-soft)}
-.optrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px;align-items:center}
+.optrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center}
 
 /* student */
-.swrap{max-width:720px;margin:0 auto}
-.scard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:clamp(18px,4vw,32px);display:grid;gap:16px}
-.scard h2{font-size:clamp(22px,5vw,32px);font-weight:800}
+.swrap{max-width:720px;margin:0 auto;display:grid;gap:14px}
+.scard{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:clamp(18px,4vw,28px);display:grid;gap:16px}
+.scard h2{font-size:clamp(20px,4.6vw,26px);font-weight:700}
 .opts{display:grid;gap:10px}
-.opt{display:flex;gap:12px;align-items:center;border:2px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--card);cursor:pointer;text-align:left;font-weight:700;font-size:18px;min-height:58px;width:100%}
-.opt .let{font-family:var(--f-mono);font-size:13px;width:28px;height:28px;border-radius:7px;display:grid;place-items:center;background:var(--soft);flex:none}
-.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
-.opt.sel .let{background:var(--accent);color:var(--accent-ink)}
+.opt{display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:13px 14px;background:var(--card);cursor:pointer;text-align:left;font-weight:500;font-size:17px;min-height:56px;width:100%;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.opt.sel .let{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .opt.right{border-color:var(--good);background:var(--good-soft)}
 .opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
 .opt:disabled{cursor:default}
 .scale5{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
-.scale5 .opt{justify-content:center;font-size:22px;padding:12px 0}
-.fb{border-radius:12px;padding:12px 14px;font-weight:700}
+.scale5 .opt{justify-content:center;font-size:22px;font-weight:700;padding:12px 0}
+.fb{border-radius:10px;padding:12px 14px;font-weight:600}
 .fb.ok{background:var(--good-soft);color:var(--good)}.fb.no{background:var(--bad-soft);color:var(--bad)}.fb.info{background:var(--soft);color:var(--muted)}
-.task{border-radius:14px;padding:18px;border-left:8px solid;display:grid;gap:8px}
+.task{border-radius:12px;padding:18px;border-left:6px solid;display:grid;gap:8px}
 .task.c0{background:var(--t0-soft);border-color:var(--t0)}.task.c1{background:var(--t1-soft);border-color:var(--t1)}.task.c2{background:var(--t2-soft);border-color:var(--t2)}
-.task p{margin:0;white-space:pre-wrap;font-size:18px}
+.task p{margin:0;white-space:pre-wrap;font-size:17px}
 .center{display:grid;place-items:center;text-align:center;gap:12px;padding-block:40px}
-.note{font-size:14px;border:1px dashed var(--line);border-radius:10px;padding:10px 12px;color:var(--muted)}
+.waitart{width:64px;height:64px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center}
+.waitart i{width:18px;height:18px;border-radius:50%;background:var(--accent);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(.7);opacity:.6}50%{transform:scale(1.1);opacity:1}}
+.note{font-size:14px;border:1px solid var(--line);background:var(--soft);border-radius:10px;padding:10px 12px;color:var(--muted)}
 
 /* present */
-.present{position:fixed;inset:0;background:var(--paper);z-index:20;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px);display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:20px;overflow:auto}
-.present .stage{aspect-ratio:auto;min-height:70vh}
+.present{position:fixed;inset:0;background:var(--paper);z-index:20;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px);display:grid;grid-template-columns:minmax(0,2.2fr) minmax(280px,1fr);gap:20px;overflow:auto}
+.present .stage{aspect-ratio:auto;min-height:calc(100vh - 32px)}
 @media (max-width:800px){.present{grid-template-columns:1fr}}
-.code{font:800 clamp(40px,7vw,88px)/1 var(--f-mono);letter-spacing:.12em;color:var(--accent)}
-.codepill{font-family:var(--f-mono);letter-spacing:.1em;background:var(--accent-soft);color:var(--ink)}
-.tnotes{margin-top:12px;border-left:4px solid var(--warn);background:var(--card);border-radius:8px;padding:10px 14px;font-size:15px;white-space:pre-wrap}
+.code{font:700 clamp(40px,7vw,88px)/1 var(--f-mono);letter-spacing:.1em;color:var(--accent)}
+.codepill{font-family:var(--f-mono);letter-spacing:.06em;background:var(--accent-soft);color:var(--ink)}
+.tnotes{margin-top:12px;border-left:4px solid var(--gold);background:var(--card);border-radius:8px;padding:10px 14px;font-size:15px;white-space:pre-wrap;box-shadow:var(--shadow)}
 pre.codebox{margin:0;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font:500 clamp(14px,1.5vw,18px)/1.5 var(--f-mono);overflow-x:auto;white-space:pre;max-width:100%}
 .explain{border-left:4px solid var(--good);background:var(--good-soft);border-radius:8px;padding:10px 14px;font-size:16px}
 .slideimg{width:100%;aspect-ratio:16/9;object-fit:contain;background:var(--soft);border-radius:10px;border:1px solid var(--line);display:block}
 .stage.hasimg{padding:clamp(10px,1.5vw,16px)}
 .imgph{width:100%;aspect-ratio:16/9;border-radius:10px;background:var(--soft);display:grid;place-items:center;color:var(--muted);font-size:14px}
 .import{border:1px dashed var(--accent);border-radius:10px;padding:12px;display:grid;gap:8px;background:var(--accent-soft)}
-.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:10px;font-weight:700;z-index:30;max-width:calc(100% - 32px)}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:10px;font-weight:600;z-index:30;max-width:calc(100% - 32px);box-shadow:var(--shadow-lg)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
 <div class="wrap" id="app">
@@ -189,12 +250,15 @@ pre.codebox{margin:0;background:var(--soft);border:1px solid var(--line);border-
 <div class="toast" id="toast" hidden></div>
 
 <script type="module">
-import * as nourPolicy from "./presentation-state.js?v=nour-1.2";
+import * as nourPolicy from "./presentation-state.js?v=nour-1.3";
 window.NOUR_POLICY = nourPolicy;
-import {rankQuiz, initials} from "./quiz-ranking.js?v=nour-1.2";
+import {rankQuiz, initials} from "./quiz-ranking.js?v=nour-1.3";
+import {joinUrl, shortSite, qrSvg} from "./join-qr.js?v=nour-1.3";
+window.NOUR_JOIN = {joinUrl, shortSite, qrSvg};
 (() => {
 "use strict";
 const {activationState, acceptingAnswers, remainingSeconds, showsResults, publicLiveState, hasAnswerKey} = window.NOUR_POLICY;
+const {joinUrl, shortSite, qrSvg} = window.NOUR_JOIN;
 /* ---------- helpers ---------- */
 const $ = (s, r = document) => r.querySelector(s);
 function h(tag, attrs, ...kids) {
@@ -522,6 +586,11 @@ function topBar(sub, ...right) {
     h("div", { class: "brand grow" }, h("img",{src:"./assets/nour-icon-32.png",alt:"",width:32,height:32,style:"vertical-align:middle;margin-right:8px"}), (S.deck && S.deck.title) || "Nour", h("small", { text: sub })),
     ...right);
 }
+function studentBar(sub, ...right) {
+  return h("div", { class: "sbar" }, h("div", { class: "in" }, h("img", { src: "./assets/nour-icon-32.png", alt: "", width: 32, height: 32 }),
+    h("div", { class: "grow" }, h("b", { text: (S.deck && S.deck.title) || "Nour" }), h("small", { text: sub })), ...right));
+}
+const waiting = (title, text) => h("div", { class: "scard center" }, h("div", { class: "waitart", "aria-hidden": "true" }, h("i")), h("h2", { text: title }), h("p", { class: "muted", style: "margin:0", text }));
 function connPill() {
   const n = S.peers.filter(p => !p.isMe && (p.presence || {}).role === "student" && p.presence.sid === S.live.sessionId).length;
   return h("span", { class: "pill" }, h("span", { class: "dot" + (S.connected ? " live" : "") }), S.connected ? n + " student" + (n === 1 ? "" : "s") + " online" : "Not connected");
@@ -532,12 +601,14 @@ function stageEl(sl, opts = {}) {
   const k = S.keys[sl.id]; const showKey = opts.showKey; const open = !opts.preview && acceptingAnswers(S.live);
   if (imgShown(sl) && !sl.picture) {
     return h("div", { class: "stage hasimg" },
+      opts.joinBar && sl.type !== "join" ? joinBar() : null,
       TYPES[sl.type].q ? h("div", { class: "kind" }, h("span", { class: "eyebrow", text: TYPES[sl.type].label }), h("span", { class: "pill", style: "margin-left:auto" }, h("span", { class: "dot" + (open ? " live" : "") }), open ? "Answers open" : "Answers closed")) : null,
       slideImg(sl),
-      sl.type === "join" ? h("div", { class: "row", style: "justify-content:space-between" }, h("span", { class: "eyebrow", text: "Join code" }), h("span", { class: "code", style: "font-size:clamp(28px,4vw,48px)", text: S.live.code || "·····" })) : null,
+      sl.type === "join" ? h("div", { class: "row", style: "justify-content:space-between" }, h("span", { class: "muted", style: "font-weight:600", text: "Join at " + shortSite() }), h("span", { class: "code", style: "font-size:clamp(28px,4vw,48px)", text: S.live.code ? "#" + S.live.code : "·····" }), S.live.code ? h("span", { style: "width:clamp(90px,10vw,140px)" }, qrEl(S.live.code)) : null) : null,
       showKey && k && TYPES[sl.type].graded ? h("div", { class: "explain" }, h("b", { text: "Answer: " + correctText(sl, k) + ". " }), k.explain || "") : null);
   }
   const st = h("div", { class: "stage" },
+    opts.joinBar && sl.type !== "join" ? joinBar() : null,
     h("div", { class: "kind" }, h("span", { class: "eyebrow", text: TYPES[sl.type].label }), h("span", { class: "eyebrow mono", text: "· " + ((S.live.slide || 0) + 1) + "/" + slides().length }),
       TYPES[sl.type].q ? h("span", { class: "pill", style: "margin-left:auto" }, h("span", { class: "dot" + (open ? " live" : "") }), open ? "Answers open" : "Answers closed") : null),
     h("h2", { text: sl.title || "" }),
@@ -551,8 +622,9 @@ function stageEl(sl, opts = {}) {
   if (showKey && k && k.explain) st.append(h("div", { class: "explain", text: k.explain }));
   if (sl.type === "join") {
     const n = studentList().filter(s => s.online).length;
-    st.append(h("div", { style: "margin-top:auto;display:grid;gap:8px" }, h("span", { class: "eyebrow", text: "Join code" }), h("div", { class: "code", text: S.live.code || "·····" }),
-      h("span", { class: "muted", text: "Open the lesson link, type the code and your name. " + n + (n === 1 ? " student has" : " students have") + " joined." })));
+    st.append(h("div", { class: "joinsplit" }, h("div", { style: "display:grid;gap:8px" }, h("span", { class: "muted", style: "font-weight:600", text: "Join at " + shortSite() }), h("div", { class: "code", text: S.live.code ? "#" + S.live.code : "·····" }),
+      h("span", { class: "muted", text: "Scan the QR code or type the code, then your name. " + n + (n === 1 ? " student has" : " students have") + " joined." })),
+      S.live.code ? qrEl(S.live.code) : null));
   }
   if (sl.type === "task") st.append(h("div", { class: "gcols", style: "margin-top:auto" }, [0, 1, 2].map(i => h("div", { class: "gcol c" + i }, h("b", { text: S.live.tierNames[i] }), h("p", { style: "margin:6px 0 0;white-space:pre-wrap;font-size:14px", text: (sl.tasks || [])[i] || "" })))));
   return st;
@@ -561,7 +633,7 @@ function stageEl(sl, opts = {}) {
 function teacherTop() {
   const n = slides().length;
   return topBar("Teacher view · only you see this", connPill(),
-    S.live.code ? h("span", { class: "pill codepill", title: "Students type this code to join" }, "Code " + S.live.code) : h("button", { class: "btn sm", onclick: () => setLive({ code: newCode() }) }, "Create join code"),
+    S.live.code ? h("span", { class: "pill codepill", title: "Students type this code to join" }, "#" + S.live.code) : h("button", { class: "btn sm", onclick: () => setLive({ code: newCode() }) }, "Create join code"),
     h("button", { class: "btn sm", onclick: () => { S.preview = true; S.sig = ""; render(true); } }, "Preview as student"),
     h("button", { class: "btn sm primary", disabled: !n, onclick: () => { S.present = true; goTo(S.live.slide || 0); render(); } }, "Present"),
     window.__signOut ? h("button", { class: "btn sm", onclick: () => window.__signOut() }, "Sign out") : null);
@@ -589,7 +661,7 @@ function renderTeacher(app) {
 function leftParts() {
   const sl = curSlide(); const n = slides().length;
   const notes = sl && S.keys[sl.id] && S.keys[sl.id].notes;
-  return [stageEl(sl, { showKey: S.live.reveal }),
+  return [stageEl(sl, { showKey: S.live.reveal, joinBar: true }),
     h("div", { class: "controls" }, timerEl(),
       sl && TYPES[sl.type].q ? h("button",{class:"btn",onclick:toggleResults},S.live.resultsVisible ? "Hide results" : "Show results") : null,
       h("button", { class: "btn", disabled: !n || S.live.slide <= 0, onclick: () => go(-1) }, "← Back"),
@@ -676,9 +748,27 @@ function liveTab() {
   if (!list.length) out.push(joinHelp());
   return out;
 }
+/* Join banner and QR. Phones that scan the QR open the student site with the lesson code filled in. */
+const qrCache = {};
+function qrEl(code) {
+  const url = joinUrl(code);
+  if (!qrCache[url]) qrCache[url] = qrSvg(url, { label: "Scan to join the lesson with code " + code });
+  return qrCache[url].cloneNode(true);
+}
+function joinBar() {
+  if (!S.live.code) return null;
+  return h("div", { class: "joinbar" }, qrEl(S.live.code),
+    h("div", { class: "jt" }, h("span", { text: "Scan the QR or join at" }), h("b", { text: shortSite() })),
+    h("span", { class: "jcode", title: "Lesson code", text: "#" + S.live.code }));
+}
+function joinCard() {
+  if (!S.live.code) return null;
+  return h("div", { class: "joincard" }, h("span", { class: "eyebrow", text: "Scan to join" }), qrEl(S.live.code),
+    h("div", { class: "jsite", text: "or go to " + shortSite() + " and enter" }), h("div", { class: "jcode", text: "#" + S.live.code }));
+}
 function joinHelp() {
-  if (window.HOSTED) return h("div", { class: "note" }, h("b", { text: "How students join. " }),
-    "Students go to " + location.host + location.pathname.replace(/\/$/, "") + " on any device, type the code " + (S.live.code || "(create one above)") + " and their name. No account or install needed.");
+  if (window.HOSTED) return h("div", { style: "display:grid;gap:10px" }, h("div", { class: "note" }, h("b", { text: "How students join. " }),
+    "Students scan the QR code, or go to " + shortSite() + " on any device and type the code " + (S.live.code || "(create one above)") + " and their name. No account or install needed."), joinCard());
   return h("div", { class: "note" }, h("b", { text: "How students join. " }),
     "Use the Share menu on this page to invite each student by email as a guest. They open the link while signed in, type their name, and their answers appear here live. Keep this tab open during the lesson so answers are saved.");
 }
@@ -903,7 +993,7 @@ function presentEl() {
     h("div", { class: "row" }, h("button", { class: "btn", onclick: () => go(-1) }, "←"), h("button", { class: "btn primary", onclick: () => go(1) }, "→"),
       sl && hasAnswerKey(sl, S.keys[sl.id]) ? h("button", { class: "btn" + (S.live.reveal ? " on" : ""), onclick: toggleReveal }, S.live.reveal ? "Hide answer" : "Show answer") : null,
       h("button", { class: "btn", onclick: () => { S.present = false; stopInteraction(); render(); } }, "Exit"))));
-  return h("div", { class: "present", role: "dialog", "aria-label": "Presenting" }, stageEl(sl, { showKey: S.live.reveal }), side);
+  return h("div", { class: "present", role: "dialog", "aria-label": "Presenting" }, stageEl(sl, { showKey: S.live.reveal, joinBar: true }), side);
 }
 document.addEventListener("keydown", e => {
   if (S.role !== "teacher" || S.preview || window.EMBED) return;
@@ -915,10 +1005,10 @@ document.addEventListener("keydown", e => {
 /* ---------- student view ---------- */
 function renderStudent(app) {
   const back = S.preview ? h("button", { class: "btn sm", onclick: () => { S.preview = false; render(); } }, "Back to teacher view") : null;
-  app.append(topBar(S.joined ? "Joined as " + S.me.name : "Live lesson", h("span", { class: "pill" }, h("span", { class: "dot" + (S.connected ? " live" : "") }), S.connected ? "Connected" : "Connecting…"), back));
+  app.append(studentBar([S.live.code ? "#" + S.live.code : "", S.joined ? S.me.name : "Live lesson"].filter(Boolean).join(" · "), h("span", { class: "pill" }, h("span", { class: "dot" + (S.connected ? " live" : "") }), S.connected ? "Live" : "Connecting…"), back));
   const wrap = h("div", { class: "swrap" }); app.append(wrap);
   if (!S.joined) {
-    const codeIn = h("input", { type: "text", id: "s-code", value: S.typedCode || "", maxlength: 8, placeholder: "K7M2Q", autocomplete: "off", autocapitalize: "characters", style: "font:700 26px var(--f-mono);letter-spacing:.15em;text-transform:uppercase" });
+    const codeIn = h("input", { type: "text", id: "s-code", value: S.typedCode || "", maxlength: 8, placeholder: "K7M2Q", autocomplete: "off", autocapitalize: "characters", "aria-label": "Lesson code" });
     const inp = h("input", { type: "text", id: "s-name", value: S.me.name, maxlength: 40, placeholder: "First name and last initial", autocomplete: "name" });
     const err = h("p", { class: "fb no", style: "margin:0", hidden: true });
     const join = () => {
@@ -931,15 +1021,15 @@ function renderStudent(app) {
     };
     for (const el of [codeIn, inp]) el.addEventListener("keydown", e => { if (e.key === "Enter") join(); });
     codeIn.addEventListener("input", () => { S.typedCode = codeIn.value; });
-    wrap.append(h("div", { class: "scard" }, h("span", { class: "eyebrow", text: "Join the lesson" }), h("h2", { text: (S.deck && S.deck.title) || "Live lesson" }),
-      h("label", { class: "f", for: "s-code" }, "Lesson code from the board"), codeIn,
-      h("label", { class: "f", for: "s-name" }, "Your name, as your teacher knows you"), inp, err, h("button", { class: "btn primary", onclick: join }, "Join lesson"),
+    wrap.append(h("div", { class: "joinbox" }, h("h2", { text: "Join " + ((S.deck && S.deck.title) || "the lesson") }),
+      h("label", { class: "f", for: "s-code" }, "Lesson code from the board"), h("div", { class: "codefield" }, h("span", { text: "#" }), codeIn),
+      h("label", { class: "f", for: "s-name" }, "Your name, as your teacher knows you"), inp, err, h("button", { class: "btn primary lg block", onclick: join }, "Join"),
       !S.room ? h("p", { class: "note", text: "You can't send answers from this view. Open the link your teacher shared while signed in." }) : null));
     return;
   }
   const sl = curSlide(); prefetchImgs();
-  if (!sl) { wrap.append(h("div", { class: "scard center" }, h("h2", { text: "You're in" }), h("p", { class: "muted", text: "Waiting for your teacher to start." }))); return; }
-  if (!S.live.presenting) { wrap.append(h("div", {class:"scard center"}, h("h2", {text:"Waiting for your teacher"}), h("p", {class:"muted",text:"Your question will appear when the presentation starts."}))); return; }
+  if (!sl) { wrap.append(waiting("You're in", "Waiting for your teacher to start.")); return; }
+  if (!S.live.presenting) { wrap.append(waiting("Waiting for your teacher", "Your question will appear when the presentation starts.")); return; }
   if (S.live.roundId && !S.roundStarts[S.live.roundId]) {
     S.roundStarts[S.live.roundId] = Date.now();
     lsSet("nour-round-starts:" + S.live.sessionId, JSON.stringify(S.roundStarts));
@@ -974,7 +1064,7 @@ function renderStudent(app) {
     field.addEventListener("input", e => { S.draft[sl.id] = e.target.value; });
     const send = () => { let v = field.value.trim(); if (!v) return; if (sl.type === "number") { v = Number(v); if (!isFinite(v)) return toast("Type a number"); } delete S.draft[sl.id]; answer(sl, v); };
     if (!isOpen) field.addEventListener("keydown", e => { if (e.key === "Enter") send(); });
-    card.append(h("label", { class: "f", for: field.id }, "Your answer"), field, h("button", { class: "btn primary", disabled: locked, onclick: send }, has ? "Update answer" : "Send answer"));
+    card.append(h("label", { class: "f", for: field.id }, "Your answer"), field, h("button", { class: "btn primary lg block", disabled: locked, onclick: send }, has ? "Update answer" : "Send"));
     if (rk && sl.type !== "open") card.append(h("p", { class: "fb info", style: "margin:0", text: "Answer: " + (sl.type === "number" ? rk.correct : (rk.accept || []).join(" or ")) }));
   }
   if (TYPES[sl.type].q) {
@@ -994,13 +1084,13 @@ function renderStudent(app) {
 
 render();
 // Used by the PowerPoint add-in (addin/addin.js).
-window.__lesson = { S, h, slides, goTo, setLive, toggleReveal, toggleResults, stopInteraction, showsResults, acceptingAnswers, remainingSeconds, timerEl, hasAnswerKey, stageEl, barsEl, summaryFor, studentList, newCode, render, TYPES, editTab, startEdit, classTab, groupsTab, liveTab, joinHelp, toast, newSlide, saveDeck, uploadPicture, pictureEl, leaderboardEl, toggleLeaderboard, leaderboardShowing };
+window.__lesson = { S, h, slides, goTo, setLive, toggleReveal, toggleResults, stopInteraction, showsResults, acceptingAnswers, remainingSeconds, timerEl, hasAnswerKey, stageEl, barsEl, summaryFor, studentList, newCode, render, TYPES, editTab, startEdit, classTab, groupsTab, liveTab, joinHelp, toast, newSlide, saveDeck, uploadPicture, pictureEl, leaderboardEl, toggleLeaderboard, leaderboardShowing, joinBar, joinCard, qrEl, joinUrl, shortSite };
 setInterval(updateTimers, 250);
 window.__startLesson = () => boot().catch(e => { console.error(e); S.role = "nodb"; render(); });
 if (!window.HOSTED) window.__startLesson();
 })();
 </script>
 
-<script type="module" src="host.js?v=nour-1.2"></script>
+<script type="module" src="host.js?v=nour-1.3"></script>
 </body>
 </html>

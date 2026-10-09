@@ -18,7 +18,12 @@ A Slido-style live lesson website. Teachers sign in with Google and run their le
 ## Use
 
 - Teacher: open `<site>/#teacher`, sign in, go to **Edit lesson** to write slides, load the sample lesson, or import your own slide design from a PDF. Press **Create join code**, then **Present**.
-- Students: open `<site>`, type the code and their name.
+- Students: scan the QR code on the board (it opens `<site>/?code=CODE` with the code filled in), or open `<site>` and type the code, then their name.
+- The QR code and join code appear on the teacher view, in Present mode, on Join screen slides, on every PowerPoint live slide and in the Nour sidebar. The QR is generated in the browser (`site/join-qr.js`, using the vendored MIT `qrcode-generator` 2.0.4 in `site/vendor/`).
+
+## Tests
+
+`npm test` runs the unit tests. `npm run test:browser` drives the pages in Chrome; on Windows it uses the installed Chrome, elsewhere set `CHROME_PATH` to a Chrome or Chromium binary.
 
 ## Data
 

@@ -10,14 +10,20 @@ const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag)
 const ls = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
 const ONLINE_MS = 90 * 60 * 1000;
 
-function screen(...kids) {
-  app$.replaceChildren(
-    el("div", { class: "top" }, el("div", { class: "brand grow" }, "Nour", el("small", { text: "Answer live in class" }))),
-    el("div", { class: "swrap" }, el("div", { class: "scard" }, ...kids)));
+// Landing screens: logo, one headline, one card (the Slido join page layout).
+function screen(title, sub, kids, foot) {
+  app$.replaceChildren(el("div", { class: "hero" },
+    el("img", { class: "logo", src: "./assets/nour-logo-192.png", alt: "Nour" }),
+    el("h1", { text: title }), sub ? el("p", { class: "muted", text: sub }) : "",
+    el("div", { class: "joinbox" }, ...kids), foot || ""));
 }
+// A QR code opens the site as ?code=ABCDE: that code wins over one saved from an earlier lesson.
+const params = new URLSearchParams(location.search);
+const linkCode = (params.get("code") || "").trim().toUpperCase().replace(/^#/, "").slice(0, 8);
+if (linkCode) { ls.set("tll-code", linkCode); history.replaceState(null, "", location.pathname + location.hash); }
 
 if (!firebaseConfig.apiKey || firebaseConfig.apiKey.startsWith("PASTE")) {
-  screen(el("h2", { text: "Almost ready" }), el("p", { class: "muted", text: "Add your Firebase settings to config.js to switch the live lesson on." }));
+  screen("Almost ready", "Add your Firebase settings to config.js to switch the live lesson on.", []);
   throw new Error("config.js is not filled in yet");
 }
 
@@ -25,7 +31,7 @@ const fb = initializeApp(firebaseConfig);
 const auth = getAuth(fb);
 const fs = getFirestore(fb);
 // Opened as ?addin: running inside PowerPoint as the Nour add-in (teacher only).
-const addin = new URLSearchParams(location.search).has("addin") ? await import(new URLSearchParams(location.search).get("addin") === "panel" ? "./addin/taskpane.js?v=nour-1.2" : "./addin/addin.js?v=nour-1.2") : null;
+const addin = params.has("addin") ? await import(params.get("addin") === "panel" ? "./addin/taskpane.js?v=nour-1.3" : "./addin/addin.js?v=nour-1.3") : null;
 if (addin) { await addin.init(); window.EMBED = addin; }
 const teacherMode = !!addin || location.hash === "#teacher";
 
@@ -91,14 +97,14 @@ function start(space, isTeacher, user) {
 
 function teacherGate() {
   const err = el("p", { class: "fb no", style: "margin:0" }); err.hidden = true;
-  screen(el("span", { class: "eyebrow", text: "Teacher" }), el("h2", { text: "Sign in to run your lesson" }),
-    el("p", { class: "muted", style: "margin:0", text: "Your lessons, answer keys and class results are kept under your account. Students never need an account." }),
-    el("button", { class: "btn primary", onclick: () => (addin ? addin.signIn(auth) : signInWithPopup(auth, new GoogleAuthProvider())).catch(e => { err.textContent = "Sign-in didn't finish: " + (e.code || e.message); err.hidden = false; }) }, "Sign in with Google"), err,
-    addin ? el("p", { class: "muted", style: "margin:0;font-size:14px", text: "Use the same Google account as on the website." }) : el("a", { href: "./", text: "I'm a student" }));
+  screen("Run your live lesson", "Your lessons, answer keys and class results are kept under your account. Students never need an account.", [
+    el("button", { class: "btn primary lg block", onclick: () => (addin ? addin.signIn(auth) : signInWithPopup(auth, new GoogleAuthProvider())).catch(e => { err.textContent = "Sign-in didn't finish: " + (e.code || e.message); err.hidden = false; }) }, "Sign in with Google"), err,
+    addin ? el("p", { class: "muted", style: "margin:0;font-size:14px", text: "Use the same Google account as on the website." }) : ""],
+    addin ? "" : el("p", { class: "foot" }, "Joining as a student? ", el("a", { href: "./", text: "Enter a code" })));
 }
 
 function studentGate(user) {
-  const code = el("input", { type: "text", id: "g-code", maxlength: "8", placeholder: "K7M2Q", autocomplete: "off", autocapitalize: "characters", style: "font:700 26px var(--f-mono);letter-spacing:.15em;text-transform:uppercase" });
+  const code = el("input", { type: "text", id: "g-code", maxlength: "8", placeholder: "K7M2Q", autocomplete: "off", autocapitalize: "characters", "aria-label": "Lesson code" });
   const name = el("input", { type: "text", id: "g-name", maxlength: "40", placeholder: "First name and last name", autocomplete: "name" });
   code.value = ls.get("tll-code") || ""; name.value = ls.get("tll-name") || "";
   const err = el("p", { class: "fb no", style: "margin:0" }); err.hidden = true;
@@ -116,12 +122,13 @@ function studentGate(user) {
       start(snap.data().owner, false, u);
     } catch (e) { console.warn(e); fail("Couldn't connect. Check your internet and try again."); }
   };
-  const btn = el("button", { class: "btn primary", onclick: go }, "Join lesson");
+  const btn = el("button", { class: "btn primary lg block", onclick: go }, "Join");
   for (const i of [code, name]) i.addEventListener("keydown", e => { if (e.key === "Enter") go(); });
-  screen(el("span", { class: "eyebrow", text: "Join the lesson" }), el("h2", { text: "Enter your lesson code" }),
-    el("label", { class: "f", for: "g-code" }, "Lesson code from the board"), code,
-    el("label", { class: "f", for: "g-name" }, "Your name, as your teacher knows you"), name, err, btn,
-    el("a", { href: "#teacher", onclick: () => setTimeout(() => location.reload(), 0), text: "I'm the teacher", style: "font-size:14px" }));
+  screen(linkCode ? "You're joining #" + linkCode : "Join your live lesson", linkCode ? "Type your name to join." : "Scan the QR code on the board, or type the code.", [
+    el("label", { class: "f", for: "g-code" }, "Lesson code"), el("div", { class: "codefield" }, el("span", { text: "#" }), code),
+    el("label", { class: "f", for: "g-name" }, "Your name, as your teacher knows you"), name, err, btn],
+    el("p", { class: "foot" }, "Teacher? ", el("a", { href: "#teacher", onclick: () => setTimeout(() => location.reload(), 0), text: "Sign in to run a lesson" })));
+  (linkCode && !name.value ? name : linkCode ? btn : code).focus();
 }
 
 let started = false;
