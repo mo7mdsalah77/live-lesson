@@ -2,7 +2,11 @@
 export function questionForm(L, draft, update, save, cancel, busy) {
   const {h} = L, sl = draft.slide, key = draft.key, type = L.TYPES[sl.type];
   const field = (label, property, object = sl, rows = 2) => h("label", {class:"f"}, label, h("textarea", {rows,value:object[property] || "",oninput:e=>object[property]=e.target.value}));
-  const nodes = [h("h2", {text:type.label}), field(sl.type === "task" ? "Task heading" : "Your question", "title")];
+  const nodes = [h("button",{class:"btn sm",onclick:cancel},"← Back"), h("label",{class:"f"},"Interaction type",h("select",{value:sl.type,onchange:e=>{
+    const next=L.newSlide(e.target.value);next.id=sl.id;next.title=sl.title;next.body=sl.body||"";next.resultsMode=sl.resultsMode;next.timerSeconds=sl.timerSeconds;next.picture=sl.picture;
+    if(!next.picture)delete next.picture;if(!next.resultsMode)delete next.resultsMode;if(next.timerSeconds==null)delete next.timerSeconds;
+    draft.slide=next;draft.key={notes:key.notes||""};if(next.type==="multi")draft.key.correct=[];update();
+  }},Object.entries(L.TYPES).filter(([id])=>!["join","multi"].includes(id)).map(([id,t])=>h("option",{value:id,text:t.label,selected:sl.type===id})),sl.type==="multi"?h("option",{value:"multi",text:"Select all",selected:true}):null)), field(sl.type === "task" ? "Task heading" : "Your question", "title")];
   nodes.push(h("label",{class:"btn sm"},draft.uploading ? "Uploading picture…" : sl.picture ? "Replace picture" : "Upload picture",h("input",{type:"file",accept:"image/png,image/jpeg,image/webp",hidden:true,disabled:busy||draft.uploading,"aria-label":"Upload question picture",onchange:async e=>{
     const file=e.target.files[0];if(!file)return;draft.uploading=true;update();
     try{await L.uploadPicture(sl,file);}catch(error){L.toast(error.message||"Could not upload the picture.");}
@@ -31,6 +35,7 @@ export function questionForm(L, draft, update, save, cancel, busy) {
   nodes.push(h("label",{class:"f"},"Show class results on the slide",h("select",{value:sl.resultsMode||"click",onchange:e=>sl.resultsMode=e.target.value},
     h("option",{value:"click",text:"On click"}),h("option",{value:"immediate",text:"Immediately"}),h("option",{value:"hidden",text:"Keep hidden"}))),
     h("label",{class:"f"},"Answer timer (seconds · 0 = no timer)",h("input",{type:"number",min:0,max:3600,step:1,value:sl.timerSeconds||0,oninput:e=>sl.timerSeconds=Math.max(0,Math.min(3600,Math.floor(Number(e.target.value)||0)))})));
+  if(type.graded && sl.graded!==false)nodes.push(h("label",{class:"row"},h("input",{type:"checkbox",checked:sl.showLeaderboard!==false,onchange:e=>sl.showLeaderboard=e.target.checked}),"Show leaderboard after revealing the answer"));
   const advanced=h("details",{class:"lladvanced"},h("summary",{text:"Teaching options"}),field("Supporting text","body"),field("Code (optional)","code",sl,3),field("Private teacher notes","notes",key,3));
   if(type.graded && sl.graded!==false)advanced.append(field("Explanation after revealing the answer","explain",key),h("label",{class:"f"},"Points",h("input",{type:"number",min:1,max:10,value:sl.points||1,oninput:e=>sl.points=Math.max(1,Math.min(10,Number(e.target.value)||1))})),
     h("label",{class:"row"},h("input",{type:"checkbox",checked:sl.group!==false,onchange:e=>sl.group=e.target.checked}),"Counts towards groups"),h("label",{class:"row"},h("input",{type:"checkbox",checked:!!sl.hinge,onchange:e=>sl.hinge=e.target.checked}),"Hinge: wrong answer → support group"));

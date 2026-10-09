@@ -1,6 +1,6 @@
-import { init as initOffice, signIn, isSlideShow } from "./addin.js?v=nour-1.3";
-import { insertInteraction } from "./insert-interaction.js?v=nour-1.3";
-import { questionForm, validateQuestion } from "./question-form.js?v=nour-1.3";
+import { init as initOffice, signIn, isSlideShow } from "./addin.js?v=nour-1.4";
+import { insertInteraction } from "./insert-interaction.js?v=nour-1.4";
+import { questionForm, validateQuestion } from "./question-form.js?v=nour-1.4";
 export { signIn };
 let page = "list", force = false, selected = null, busy = false;
 let draft = null;
@@ -86,6 +86,7 @@ export function render(app) {
   const map = globalThis.Office?.context?.document?.settings.get(MAP) || {};
   const linked = selected && list.find(s => s.id === map[selected]);
   const header = h("header", { class: "llhead" }, h("img",{src:"./assets/nour-icon-32.png",alt:"",width:28,height:28}), h("b", { text: "Nour" }), h("span", { class: "pill", text: S.connected ? "Connected" : "Connecting…" }));
+  const menu = h("details",{class:"llmenu"},h("summary",{text:"☰ Menu"}),h("div",{class:"llmenuitems"},h("button",{class:"btn",onclick:()=>navigate("class")},"View results and export"),h("button",{class:"btn",onclick:()=>navigate("groups")},"Learning groups"),h("a",{class:"btn",href:"./#teacher",target:"_blank",rel:"noopener",text:"Manage lesson in browser"}),h("button",{class:"btn",onclick:()=>{navigate("list");}},"Share lesson QR")));
   const nav = h("nav", { class: "llnav", "aria-label": "Interaction workspace" }, [["list","Interactions"],["class","Results"],["groups","Groups"]].map(([key,title]) => h("button", { class: "btn sm" + (page === key ? " on" : ""), onclick: () => navigate(key) }, title)));
   const body = h("section", { class: "llbody", id: "pbody" });
   const launch = s => L.goTo(list.findIndex(item => item.id === s.id));
@@ -108,9 +109,10 @@ export function render(app) {
     if (list.length) body.append(h("h3", { text: "Live interaction" }), ...L.liveTab().filter(Boolean), h("div", { class: "row" }, h("button", { class: "btn sm", onclick: () => L.setLive({ open: !S.live.open }) }, S.live.open ? "Close answers" : "Reopen answers"), h("button", {class:"btn sm",onclick:L.toggleResults},S.live.resultsVisible ? "Hide results" : "Show results"), L.hasAnswerKey(list[S.live.slide || 0],S.keys[list[S.live.slide || 0]?.id]) ? h("button", { class: "btn sm", onclick: L.toggleReveal }, S.live.reveal ? "Hide answer" : "Reveal correct answer") : null, L.timerEl()));
     body.append(h("p", { class: "muted small", text: "Each interaction is its own live PowerPoint slide. Use the side panel for your results and groups." }));
   }
-  app.append(h("div", { class: "llpanel" }, header, nav, body));
+  app.append(h("div", { class: "llpanel" }, header, h("div",null,menu,nav), body));
 }
 const CSS = `
+.llmenu{background:var(--card);padding:12px 14px;border-bottom:1px solid var(--line)}.llmenu summary{cursor:pointer;font-weight:600}.llmenuitems{display:grid;gap:8px;padding-top:12px}
 .wrap{max-width:none;padding:0}
 .llpanel{position:fixed;inset:0;display:grid;grid-template-rows:auto auto minmax(0,1fr);background:var(--paper);font-size:14px}
 .llhead{padding:12px 14px;display:flex;align-items:center;gap:8px;background:var(--card);border-bottom:1px solid var(--line)}
@@ -130,6 +132,6 @@ const CSS = `
 .lljoin b{font-size:24px;color:var(--accent);letter-spacing:.06em}
 .lljoin .muted{font-size:12px;word-break:break-all}
 .llbody .joincard{display:none}
-.lltypes{display:grid;gap:8px}.lltype{font:inherit;text-align:left;cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--card);color:var(--ink);display:flex;flex-direction:column;gap:3px;box-shadow:var(--shadow);transition:border-color .15s}.lltype:hover{border-color:var(--accent)}.lltype b{font-size:15px}.lltype span{font-size:13px;color:var(--muted)}
+.lltypes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.lltype{min-width:0}.lltype{font:inherit;text-align:left;cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--card);color:var(--ink);display:flex;flex-direction:column;gap:3px;box-shadow:var(--shadow);transition:border-color .15s}.lltype:hover{border-color:var(--accent)}.lltype b{font-size:15px}.lltype span{font-size:13px;color:var(--muted)}
 .lladvanced{display:grid;gap:12px}.lladvanced summary{cursor:pointer;font-weight:600;padding:10px 0}.llbody .ed,.llbody .gcols{grid-template-columns:1fr}.llbody .elist{max-height:140px;overflow:auto}.llbody .import{display:none}.llbody .tblwrap{max-width:100%;overflow:auto}.llbody .stat{flex-wrap:wrap}
 `;

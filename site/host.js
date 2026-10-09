@@ -31,7 +31,7 @@ const fb = initializeApp(firebaseConfig);
 const auth = getAuth(fb);
 const fs = getFirestore(fb);
 // Opened as ?addin: running inside PowerPoint as the Nour add-in (teacher only).
-const addin = params.has("addin") ? await import(params.get("addin") === "panel" ? "./addin/taskpane.js?v=nour-1.3" : "./addin/addin.js?v=nour-1.3") : null;
+const addin = params.has("addin") ? await import(params.get("addin") === "panel" ? "./addin/taskpane.js?v=nour-1.4" : "./addin/addin.js?v=nour-1.4") : null;
 if (addin) { await addin.init(); window.EMBED = addin; }
 const teacherMode = !!addin || location.hash === "#teacher";
 
