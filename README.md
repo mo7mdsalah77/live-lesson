@@ -66,4 +66,6 @@ Poll bars show vote counts, percentages of respondents, and participant initials
 
 ### Repairing “This add-in is no longer available” on Windows
 
-The developer template requires the add-in manifests to remain registered and development mode enabled. `launch-nour.ps1` uses Microsoft's `office-addin-dev-settings` tool to restore both before opening `Nour.potx`. The desktop Nour shortcut invokes this launcher without a console window. It requires the installed Node/npm tools. Registration output is in `launch-nour.log` beside the installer. The shared-folder catalog installer remains the separate supported catalog setup and requires administrator access.
+The developer template requires the add-in manifests to remain registered and development mode enabled. `launch-nour.cmd` uses Microsoft's `office-addin-dev-settings` tool to restore both before opening `Nour.potx`. The desktop Nour shortcut invokes this launcher with a minimized registration window. It requires the installed Node/npm tools. Registration output is in `launch-nour.log` beside the installer. The shared-folder catalog installer remains the separate supported catalog setup and requires administrator access.
+
+Use the command launcher on machines that block PowerShell script files; no execution-policy change is required.
