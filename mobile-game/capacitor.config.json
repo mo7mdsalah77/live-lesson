@@ -1,0 +1,7 @@
+{
+  "appId": "com.mo7mdsalah.stardodge",
+  "appName": "Star Dodge",
+  "webDir": "www",
+  "backgroundColor": "#0b0b2a",
+  "android": { "allowMixedContent": false }
+}
