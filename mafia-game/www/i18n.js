@@ -1,0 +1,42 @@
+window.I18N = {
+  en: {
+    title: 'Who is the Imposter?', sub: 'Party game · pass the phone',
+    mafia: 'Mafia', mafiaDesc: 'Classic roles: Mafia, Doctor, Detective, Citizens',
+    imposter: 'Imposter', imposterDesc: 'Everyone gets a secret word except the imposter',
+    players: 'Players', addPlayer: '+ Add player', playerN: 'Player {n}', start: 'Start',
+    minPlayers: 'Need at least {n} players with different names', category: 'Category', random: 'Random', timer: 'Discussion (minutes)', back: 'Back',
+    passTo: 'Pass the phone to', iAm: 'Show my role', hidePass: 'Hide and pass', last: 'Hide', secret: 'Only you should see this!',
+    youAre: 'You are', role_mafia: 'Mafia', role_doctor: 'Doctor', role_detective: 'Detective', role_citizen: 'Citizen',
+    desc_mafia: 'Eliminate the citizens without being caught.', desc_doctor: 'Each night, protect one person from the Mafia.', desc_detective: 'Each night, investigate one person.', desc_citizen: 'Find the Mafia and vote them out.',
+    teammates: 'Your Mafia team', allDealt: 'Everyone has a role', beginNight: 'Begin the night', night: 'Night {n}', everyoneSleep: 'Everyone close your eyes',
+    wakeMafia: 'Mafia, open your eyes and choose a victim', wakeDoctor: 'Doctor, open your eyes and choose who to protect', wakeDetective: 'Detective, open your eyes and choose who to investigate',
+    sleepAgain: 'Close your eyes again', next: 'Next', isMafia: 'is MAFIA', notMafia: 'is NOT Mafia', morning: 'Everyone, open your eyes!', day: 'Day {n}',
+    diedLast: '{name} was killed in the night', savedLast: 'The Mafia attacked but the Doctor saved the victim!', quiet: 'A quiet night. Nobody died.',
+    discuss: 'Discuss and find the Mafia', goVote: 'Go to vote', whoOut: 'Who is voted out?', noOne: 'Nobody (tie)', confirm: 'Confirm', outWas: '{name} was voted out. They were', nobodyOut: 'Nobody was voted out.',
+    citizensWin: 'Citizens win!', mafiaWin: 'Mafia wins!', roles: 'Roles', playAgain: 'Play again', home: 'Home', continue: 'Continue',
+    yourWord: 'Your secret word is', youImposter: 'YOU ARE THE IMPOSTER', hint: 'Category: {c}. Blend in without knowing the word!',
+    allSet: 'All set!', startsFirst: '{name} speaks first', talkRule: 'Each player describes the word with one clue. Find the imposter!',
+    reveal: 'Reveal', whoImp: 'Who is the imposter?', theImp: 'The imposter was', theWord: 'The word was', foundIt: 'You caught the imposter!', imposterWon: 'The imposter got away!', imposterWins: 'Imposters win', crewWins: 'Crew wins', pickSuspect: 'Tap the player with the most votes',
+    time: 'Time', timeUp: "Time's up!", alive: 'Alive', dead: 'Out', language: 'العربية'
+  },
+  ar: {
+    title: 'مين برا السالفة؟', sub: 'لعبة جماعية · مرّروا الجوال',
+    mafia: 'مافيا', mafiaDesc: 'الأدوار الكلاسيكية: مافيا، دكتور، محقق، مواطنين',
+    imposter: 'برا السالفة', imposterDesc: 'الكل يعرف الكلمة السرية ما عدا واحد',
+    players: 'اللاعبين', addPlayer: '+ إضافة لاعب', playerN: 'لاعب {n}', start: 'ابدأ',
+    minPlayers: 'لازم {n} لاعبين على الأقل بأسماء مختلفة', category: 'الفئة', random: 'عشوائي', timer: 'النقاش (دقائق)', back: 'رجوع',
+    passTo: 'مرّر الجوال إلى', iAm: 'أظهر دوري', hidePass: 'إخفاء وتمرير', last: 'إخفاء', secret: 'ممنوع حد غيرك يشوف!',
+    youAre: 'أنت', role_mafia: 'مافيا', role_doctor: 'دكتور', role_detective: 'محقق', role_citizen: 'مواطن',
+    desc_mafia: 'اقضِ على المواطنين من غير ما ينكشف أمرك.', desc_doctor: 'كل ليلة احمِ شخص من المافيا.', desc_detective: 'كل ليلة حقّق في شخص.', desc_citizen: 'اكتشف المافيا وصوّتوا ضدهم.',
+    teammates: 'فريق المافيا', allDealt: 'الكل عرف دوره', beginNight: 'ابدأ الليل', night: 'الليلة {n}', everyoneSleep: 'الكل يغمض عيونه',
+    wakeMafia: 'المافيا، افتحوا عيونكم واختاروا الضحية', wakeDoctor: 'الدكتور، افتح عيونك واختر من تحميه', wakeDetective: 'المحقق، افتح عيونك واختر من تحقق فيه',
+    sleepAgain: 'غمّضوا عيونكم مرة ثانية', next: 'التالي', isMafia: 'مافيا!', notMafia: 'ليس مافيا', morning: 'الكل يفتح عيونه!', day: 'اليوم {n}',
+    diedLast: 'تم قتل {name} في الليل', savedLast: 'المافيا هاجمت لكن الدكتور أنقذ الضحية!', quiet: 'ليلة هادئة. ما مات أحد.',
+    discuss: 'ناقشوا واكتشفوا المافيا', goVote: 'انتقل للتصويت', whoOut: 'من تم التصويت عليه؟', noOne: 'ولا أحد (تعادل)', confirm: 'تأكيد', outWas: 'تم إخراج {name}. وكان', nobodyOut: 'لم يتم إخراج أحد.',
+    citizensWin: 'فاز المواطنون!', mafiaWin: 'فازت المافيا!', roles: 'الأدوار', playAgain: 'العب مرة ثانية', home: 'الرئيسية', continue: 'متابعة',
+    yourWord: 'كلمتك السرية', youImposter: 'أنت برا السالفة', hint: 'الفئة: {c}. اندمج وكأنك تعرف الكلمة!',
+    allSet: 'جاهزين!', startsFirst: 'يبدأ الكلام: {name}', talkRule: 'كل لاعب يوصف الكلمة بتلميحة. اكتشفوا مين برا السالفة!',
+    reveal: 'اكشف', whoImp: 'مين برا السالفة؟', theImp: 'برا السالفة كان', theWord: 'الكلمة كانت', foundIt: 'كشفتوا برا السالفة!', imposterWon: 'برا السالفة نجا!', imposterWins: 'فاز برا السالفة', crewWins: 'فاز الفريق', pickSuspect: 'اضغط على اللاعب الذي حصل على أكثر الأصوات',
+    time: 'الوقت', timeUp: 'انتهى الوقت!', alive: 'حي', dead: 'خرج', language: 'English'
+  }
+};
