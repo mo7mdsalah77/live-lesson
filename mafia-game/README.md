@@ -7,3 +7,7 @@ Pass-the-phone party game for 3–15 players, in Arabic (RTL) and English. The p
 
 Open `www/index.html` in a browser. `npm test` style checks: `node --test tests/logic.test.cjs`; full playthrough: `NODE_PATH=../node_modules node tests/e2e.cjs` (needs Playwright + Chromium).
 Android packaging works the same way as `../mobile-game` (Capacitor, `webDir: www`).
+
+## Android / Google Play
+Same setup as `../mobile-game` (Capacitor 8, target SDK 36, min SDK 24, package `com.mo7mdsalah.imposter`, no permissions). Build locally with `npm ci && npm run build:debug`.
+Release: add the four `ANDROID_*` repo secrets (you can reuse the same upload key as Star Dodge, or make a new one), then run the Actions workflow **Android release (Who is the Imposter)** and download the signed `.aab`. Store assets and bilingual listing text are in `store/`; follow the Play Console steps in `store/listing.md` and `../mobile-game/README.md`.
