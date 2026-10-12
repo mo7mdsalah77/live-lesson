@@ -10,8 +10,11 @@ const { chromium } = require('playwright');
   const fill = async (n) => { for (let i = 0; i < n; i++) { if (!(await p.$(`input[data-i="${i}"]`))) await click('[data-a=add]'); await p.fill(`input[data-i="${i}"]`, 'P' + (i + 1)); } };
 
   // ---- Mafia, 6 players: deal, then play nights until someone wins
-  await click('[data-v=mafia]'); await fill(6); await click('[data-a=begin]');
-  for (let i = 0; i < 6; i++) { await click('[data-a=dealShow]'); await click('[data-a=dealNext]'); }
+  await click('[data-v=mafia]'); await fill(6);
+  await p.selectOption('#mc', '2'); await click('[data-a=begin]');
+  let mafiaSeen = 0;
+  for (let i = 0; i < 6; i++) { await click('[data-a=dealShow]'); if (await p.$('.role.mafia')) mafiaSeen++; await click('[data-a=dealNext]'); }
+  if (mafiaSeen !== 2) throw new Error('expected 2 mafia, saw ' + mafiaSeen);
   let rounds = 0;
   while (!(await p.$('[data-a=setup]')) && rounds++ < 12) {
     if (await p.$('[data-a=night]')) { await click('[data-a=night]'); }
@@ -45,7 +48,28 @@ const { chromium } = require('playwright');
   for (let i = 0; i < 4; i++) { await click('[data-a=dealShow]'); if ((await p.textContent('#app')).includes('IMPOSTER')) imposterSeen++; await click('[data-a=dealNext]'); }
   if (imposterSeen !== 1) throw new Error('expected exactly one imposter, saw ' + imposterSeen);
   await click('[data-a=impVote]'); await click('.grid button'); await click('#confirm');
+  // either "last chance" (caught) or the imposter-got-away screen
+  if (await p.$('[data-a=impFinal]')) { await p.click('[data-a=impFinal][data-v="0"]'); }
   console.log('imposter result:', await p.textContent('h1'));
+
+  // ---- Imposter with first-letter hint
+  await click('[data-a=setup]'); await p.selectOption('#hint', 'letter');
+  await click('[data-a=begin]');
+  let hintSeen = 0;
+  for (let i = 0; i < 4; i++) { await click('[data-a=dealShow]'); if ((await p.textContent('#app')).includes('starts with')) hintSeen++; await click('[data-a=dealNext]'); }
+  if (hintSeen !== 1) throw new Error('hint should show only for the imposter, saw ' + hintSeen);
+  await click('[data-a=impVote]'); await click('.grid button'); await click('#confirm');
+  if (await p.$('[data-a=impFinal]')) await p.click('[data-a=impFinal][data-v="1"]');
+  if (!/Crew|caught|got away|steals/i.test(await p.textContent('h1'))) throw new Error('bad result');
+
+  // ---- Clueless variant: nobody sees the IMPOSTER card, two different words exist
+  await click('[data-a=setup]'); await p.selectOption('#variant', 'clueless'); await click('[data-a=begin]');
+  const words = [];
+  for (let i = 0; i < 4; i++) { await click('[data-a=dealShow]'); const t = await p.textContent('#app'); if (t.includes('IMPOSTER')) throw new Error('clueless imposter must not be told'); words.push(await p.textContent('.role')); await click('[data-a=dealNext]'); }
+  if (new Set(words).size !== 2) throw new Error('expected exactly 2 different words, got ' + JSON.stringify(words));
+  await click('[data-a=impVote]'); await click('.grid button'); await click('#confirm');
+  if (!(await p.textContent('#app')).includes('Imposter\'s word')) throw new Error('clueless reveal should show both words');
+  console.log('clueless ok', words);
 
   // ---- validation: duplicate names rejected
   await click('[data-a=home]'); await click('[data-v=mafia]');

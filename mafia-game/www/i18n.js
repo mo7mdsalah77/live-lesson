@@ -17,6 +17,9 @@ window.I18N = {
     yourWord: 'Your secret word is', youImposter: 'YOU ARE THE IMPOSTER', hint: 'Category: {c}. Blend in without knowing the word!',
     allSet: 'All set!', startsFirst: '{name} speaks first', talkRule: 'Each player describes the word with one clue. Find the imposter!',
     reveal: 'Reveal', whoImp: 'Who is the imposter?', theImp: 'The imposter was', theWord: 'The word was', foundIt: 'You caught the imposter!', imposterWon: 'The imposter got away!', imposterWins: 'Imposters win', crewWins: 'Crew wins', pickSuspect: 'Tap the player with the most votes',
+    mafiaCount: 'Number of Mafia', auto: 'Auto', variant: 'Game type', vClassic: 'Classic: the imposter knows', vClueless: 'Clueless: imposter gets a different word and does not know',
+    hintLevel: 'Hint for the imposter', hNone: 'No hint', hCat: 'Category', hLetter: 'Category + first letter', hintCat: 'Category: {c}', hintLetter: 'The word starts with: {l}', blendIn: 'Blend in without knowing the word!',
+    lastChance: 'Caught! Last chance', guessWord: 'Imposter, guess the secret word out loud. Did they get it?', guessedRight: 'Yes, correct', guessedWrong: 'No, wrong', impGuessed: 'The imposter guessed the word and steals the win!', crewWord: 'Crew word', impWord: "Imposter's word", clueNote: 'Remember: the imposter had a different word and did not know!',
     time: 'Time', timeUp: "Time's up!", alive: 'Alive', dead: 'Out', language: 'العربية'
   },
   ar: {
@@ -37,6 +40,9 @@ window.I18N = {
     yourWord: 'كلمتك السرية', youImposter: 'أنت برا السالفة', hint: 'الفئة: {c}. اندمج وكأنك تعرف الكلمة!',
     allSet: 'جاهزين!', startsFirst: 'يبدأ الكلام: {name}', talkRule: 'كل لاعب يوصف الكلمة بتلميحة. اكتشفوا مين برا السالفة!',
     reveal: 'اكشف', whoImp: 'مين برا السالفة؟', theImp: 'برا السالفة كان', theWord: 'الكلمة كانت', foundIt: 'كشفتوا برا السالفة!', imposterWon: 'برا السالفة نجا!', imposterWins: 'فاز برا السالفة', crewWins: 'فاز الفريق', pickSuspect: 'اضغط على اللاعب الذي حصل على أكثر الأصوات',
+    mafiaCount: 'عدد المافيا', auto: 'تلقائي', variant: 'نوع اللعبة', vClassic: 'كلاسيك: برا السالفة يعرف إنه برا', vClueless: 'مو عارف: برا السالفة ياخذ كلمة مختلفة وما يدري',
+    hintLevel: 'تلميح لبرا السالفة', hNone: 'بدون تلميح', hCat: 'الفئة', hLetter: 'الفئة + أول حرف', hintCat: 'الفئة: {c}', hintLetter: 'الكلمة تبدأ بحرف: {l}', blendIn: 'اندمج وكأنك تعرف الكلمة!',
+    lastChance: 'انكشفت! فرصة أخيرة', guessWord: 'يا برا السالفة، خمّن الكلمة السرية بصوت عالي. هل أصاب؟', guessedRight: 'نعم، صح', guessedWrong: 'لا، غلط', impGuessed: 'برا السالفة خمّن الكلمة وسرق الفوز!', crewWord: 'كلمة الفريق', impWord: 'كلمة برا السالفة', clueNote: 'تذكّر: برا السالفة كان معه كلمة مختلفة وما كان يدري!',
     time: 'الوقت', timeUp: 'انتهى الوقت!', alive: 'حي', dead: 'خرج', language: 'English'
   }
 };

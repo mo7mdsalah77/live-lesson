@@ -6,6 +6,7 @@
   var S = {
     lang: load('lang', (navigator.language || '').indexOf('ar') === 0 ? 'ar' : 'en'),
     mode: 'mafia', names: load('names', ['', '', '', '']), category: 'random', minutes: load('minutes', 3),
+    mafiaCount: 'auto', variant: load('variant', 'classic'), hint: load('hint', 'cat'), word2: '',
     players: [], night: 0, dealIdx: 0, imposters: [], word: '', cat: null, pick: null, nm: null, nd: null, error: ''
   };
 
@@ -50,13 +51,24 @@
       cats = '<label class="sub">' + t('category') + '</label><select id="cat"><option value="random">' + t('random') + '</option>' +
         Object.keys(window.WORDS).map(function (k) { return '<option value="' + k + '"' + (S.category === k ? ' selected' : '') + '>' + window.WORDS[k][S.lang].name + '</option>'; }).join('') + '</select>';
     }
+    var n = S.names.length, max = L.maxMafia(n), opts = '';
+    if (S.mode === 'mafia' && max >= 2) {
+      if (S.mafiaCount !== 'auto' && +S.mafiaCount > max) S.mafiaCount = 'auto';
+      opts = '<label class="sub">' + t('mafiaCount') + '</label><select id="mc"><option value="auto">' + t('auto') + ' (' + L.roleCounts(n).mafia + ')</option>' +
+        Array.from({ length: max }, function (_, i) { return '<option' + (String(S.mafiaCount) === String(i + 1) ? ' selected' : '') + ' value="' + (i + 1) + '">' + (i + 1) + '</option>'; }).join('') + '</select>';
+    }
+    if (S.mode === 'imposter') {
+      var o = function (v, cur, label) { return '<option value="' + v + '"' + (cur === v ? ' selected' : '') + '>' + label + '</option>'; };
+      opts = '<label class="sub">' + t('variant') + '</label><select id="variant">' + o('classic', S.variant, t('vClassic')) + o('clueless', S.variant, t('vClueless')) + '</select>' +
+        (S.variant === 'classic' ? '<label class="sub">' + t('hintLevel') + '</label><select id="hint">' + o('none', S.hint, t('hNone')) + o('cat', S.hint, t('hCat')) + o('letter', S.hint, t('hLetter')) + '</select>' : '');
+    }
     var mins = [1, 2, 3, 5, 10].map(function (m) { return '<option' + (S.minutes === m ? ' selected' : '') + '>' + m + '</option>'; }).join('');
     view('<div class="top">' + btn('home', '‹ ' + t('back'), 'ghost') + '<span class="pill">' + t(S.mode) + '</span></div><h2>' + t('players') + '</h2>' +
       S.names.map(function (n, i) {
         return '<div class="row"><input data-i="' + i + '" maxlength="14" placeholder="' + t('playerN', { n: i + 1 }) + '" value="' + esc(n) + '">' +
           (S.names.length > min ? '<button class="x" data-a="del" data-v="' + i + '">✕</button>' : '') + '</div>';
       }).join('') +
-      (S.names.length < 15 ? btn('add', t('addPlayer')) : '') + cats +
+      (S.names.length < 15 ? btn('add', t('addPlayer')) : '') + opts + cats +
       '<label class="sub">' + t('timer') + '</label><select id="mins">' + mins + '</select>' +
       (S.error ? '<p class="sub" style="color:var(--red)">' + S.error + '</p>' : '') + '<div class="spacer"></div>' + btn('begin', t('start'), 'primary'));
   }
@@ -65,14 +77,16 @@
     var names = S.names.map(function (n) { return n.trim(); }), min = S.mode === 'mafia' ? 4 : 3;
     var ok = names.every(Boolean) && new Set(names.map(function (n) { return n.toLowerCase(); })).size === names.length && names.length >= min;
     if (!ok) { S.error = t('minPlayers', { n: min }); return setup(); }
-    S.error = ''; S.names = names; save('names', names); save('minutes', S.minutes);
+    S.error = ''; S.names = names; save('names', names); save('minutes', S.minutes); save('variant', S.variant); save('hint', S.hint);
     S.dealIdx = 0; S.night = 0;
-    if (S.mode === 'mafia') S.players = L.assignRoles(names, Math.random);
+    if (S.mode === 'mafia') S.players = L.assignRoles(names, Math.random, S.mafiaCount === 'auto' ? 0 : +S.mafiaCount);
     else {
       S.players = names.map(function (n, i) { return { id: i, name: n, alive: true }; });
       S.imposters = L.pickImposters(names.length, Math.random);
       var keys = Object.keys(window.WORDS), key = S.category === 'random' ? keys[Math.floor(Math.random() * keys.length)] : S.category;
-      S.cat = window.WORDS[key][S.lang].name; S.word = L.pickWord(window.WORDS[key][S.lang].words, Math.random);
+      S.cat = window.WORDS[key][S.lang].name; S.word2 = '';
+      if (S.variant === 'clueless') { var pr = L.pickPair(window.PAIRS[key][S.lang], Math.random); S.word = pr.crew; S.word2 = pr.imposter; }
+      else S.word = L.pickWord(window.WORDS[key][S.lang].words, Math.random);
     }
     dealPass();
   }
@@ -88,8 +102,12 @@
       var mates = p.role === 'mafia' ? S.players.filter(function (q) { return q.role === 'mafia' && q.id !== p.id; }) : [];
       body = '<p class="sub">' + t('youAre') + '</p><div class="role ' + p.role + '">' + t('role_' + p.role) + '</div><p>' + t('desc_' + p.role) + '</p>' +
         (mates.length ? '<p class="sub">' + t('teammates') + ': <b>' + mates.map(function (m) { return esc(m.name); }).join('، ') + '</b></p>' : '');
+    } else if (S.imposters.indexOf(p.id) >= 0 && S.variant === 'clueless') {
+      body = '<p class="sub">' + t('yourWord') + '</p><div class="role citizen">' + esc(S.word2) + '</div><p class="sub">' + esc(S.cat) + '</p>';
     } else if (S.imposters.indexOf(p.id) >= 0) {
-      body = '<div class="emoji">🤫</div><div class="role mafia" style="font-size:30px">' + t('youImposter') + '</div><p class="sub">' + t('hint', { c: esc(S.cat) }) + '</p>';
+      body = '<div class="emoji">🤫</div><div class="role mafia" style="font-size:30px">' + t('youImposter') + '</div><p class="sub">' + t('blendIn') + '</p>' +
+        (S.hint !== 'none' ? '<p><b>' + t('hintCat', { c: esc(S.cat) }) + '</b></p>' : '') +
+        (S.hint === 'letter' ? '<p><b>' + t('hintLetter', { l: esc(L.firstLetter(S.word)) }) + '</b></p>' : '');
     } else body = '<p class="sub">' + t('yourWord') + '</p><div class="role citizen">' + esc(S.word) + '</div><p class="sub">' + esc(S.cat) + '</p>';
     var more = S.dealIdx < S.players.length - 1;
     view('<div class="spacer"></div><div class="card">' + body + '</div><div class="spacer"></div>' + btn('dealNext', more ? t('hidePass') : t('last'), 'primary'));
@@ -166,8 +184,20 @@
   function impVote() { view('<h2>' + t('whoImp') + '</h2><p class="sub">' + t('pickSuspect') + '</p>' + grid(S.players) + pickable('impResult', t('confirm'))); }
   function impResult() {
     var caught = S.imposters.indexOf(+S.pick) >= 0;
-    view('<div class="emoji" style="text-align:center">' + (caught ? '🎉' : '😈') + '</div><h1>' + (caught ? t('foundIt') : t('imposterWon')) + '</h1><div class="card"><p class="sub">' + t('theImp') + '</p><div class="big" style="color:var(--red)">' +
-      S.imposters.map(function (i) { return esc(S.players[i].name); }).join('، ') + '</div><p class="sub">' + t('theWord') + '</p><div class="big" style="color:var(--accent)">' + esc(S.word) + '</div></div><div class="spacer"></div>' +
+    if (caught && S.variant === 'classic') {
+      return view('<div class="spacer"></div><div class="emoji" style="text-align:center">🎯</div><h1>' + t('lastChance') + '</h1><div class="card"><p style="font-size:20px">' + t('guessWord') + '</p></div><div class="spacer"></div>' +
+        btn('impFinal', t('guessedRight'), 'danger" data-v="0') + btn('impFinal', t('guessedWrong'), 'primary" data-v="1'));
+    }
+    impFinal(caught ? '1' : '0');
+  }
+  function impFinal(crewWon, guessed) {
+    var crew = crewWon === '1', clueless = S.variant === 'clueless', cl = clueless ? '<p class="sub">' + t('clueNote') + '</p>' : '';
+    var title = crew ? t('foundIt') : (S.imposters.indexOf(+S.pick) >= 0 ? t('impGuessed') : t('imposterWon'));
+    var words = clueless
+      ? '<p class="sub">' + t('crewWord') + '</p><div class="big" style="color:var(--accent)">' + esc(S.word) + '</div><p class="sub">' + t('impWord') + '</p><div class="big" style="color:var(--red)">' + esc(S.word2) + '</div>'
+      : '<p class="sub">' + t('theWord') + '</p><div class="big" style="color:var(--accent)">' + esc(S.word) + '</div>';
+    view('<div class="emoji" style="text-align:center">' + (crew ? '🎉' : '😈') + '</div><h1>' + title + '</h1><div class="card"><p class="sub">' + t('theImp') + '</p><div class="big" style="color:var(--red)">' +
+      S.imposters.map(function (i) { return esc(S.players[i].name); }).join('، ') + '</div>' + words + cl + '</div><div class="spacer"></div>' +
       btn('setup', t('playAgain'), 'primary" data-v="imposter') + btn('home', t('home'), 'ghost'));
   }
 
@@ -185,7 +215,7 @@
       view('<div class="spacer"></div><div class="card"><div class="big">' + esc(p.name) + '</div><div class="role ' + (m ? 'mafia' : 'citizen') + '">' + (m ? t('isMafia') : t('notMafia')) + '</div></div><div class="spacer"></div>' + btn('dawn0', t('next'), 'primary'));
     },
     detectiveSkip: dawn0, dawn0: dawn0, dawn: dawn, discuss: discuss, vote: vote, voteDone: voteDone, end: end,
-    impVote: impVote, impResult: impResult,
+    impVote: impVote, impResult: impResult, impFinal: impFinal,
     pick: function (id, node) {
       S.pick = id; Array.prototype.forEach.call(app.querySelectorAll('.grid button'), function (b) { b.classList.toggle('sel', b === node); });
       var c = document.getElementById('confirm'); if (c) c.disabled = false;
@@ -199,6 +229,9 @@
   app.addEventListener('change', function (e) {
     if (e.target.id === 'cat') S.category = e.target.value;
     if (e.target.id === 'mins') S.minutes = +e.target.value;
+    if (e.target.id === 'mc') S.mafiaCount = e.target.value;
+    if (e.target.id === 'hint') S.hint = e.target.value;
+    if (e.target.id === 'variant') { S.variant = e.target.value; setup(); }
   });
   home();
 })();

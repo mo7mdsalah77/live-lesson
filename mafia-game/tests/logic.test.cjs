@@ -44,3 +44,25 @@ test('imposters are distinct and in range', () => {
     assert.ok(im.every(i => i >= 0 && i < n));
   }
 });
+
+test('mafia count can be chosen from 6 players, within limits', () => {
+  assert.strictEqual(L.roleCounts(6, 2).mafia, 2);
+  assert.strictEqual(L.roleCounts(6, 5).mafia, 2);          // clamped to max (n/3)
+  assert.strictEqual(L.roleCounts(4, 3).mafia, 1);          // too few players for more
+  assert.strictEqual(L.maxMafia(9), 3);
+  for (let n = 4; n <= 15; n++) for (let m = 1; m <= 6; m++) {
+    const c = L.roleCounts(n, m);
+    assert.strictEqual(c.mafia + c.doctor + c.detective + c.citizen, n);
+    assert.ok(c.mafia < n - c.mafia);                         // citizens always outnumber mafia
+  }
+  const ps = L.assignRoles(['a', 'b', 'c', 'd', 'e', 'f'], Math.random, 2);
+  assert.strictEqual(ps.filter(L.isMafia).length, 2);
+});
+
+test('word pair gives the two different words, hint is first letter', () => {
+  const r = L.pickPair([['Tea', 'Coffee']], Math.random);
+  assert.notStrictEqual(r.crew, r.imposter);
+  assert.deepStrictEqual([r.crew, r.imposter].sort(), ['Coffee', 'Tea']);
+  assert.strictEqual(L.firstLetter('Pizza'), 'P');
+  assert.strictEqual(L.firstLetter('شاورما'), 'ش');
+});
