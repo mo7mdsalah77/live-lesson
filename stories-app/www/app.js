@@ -85,6 +85,10 @@
   }
   window.addEventListener('popstate', function (e) { depth = (e.state && e.state.hw) || 0; reconcile(depth); });
 
+  // Android back button / back gesture: step back inside the app, exit only from the library.
+  var CApp = cap && cap.Plugins && cap.Plugins.App;
+  if (NT && CApp && CApp.addListener) CApp.addListener('backButton', function () { if (depth > 0) navBack(); else if (CApp.exitApp) CApp.exitApp(); });
+
   // ---------- library
   function cover(st, uid) { var p = st.pages[0]; return window.Scenes.render(uid, p.s[0], p.s[1], { cover: true }); }
   function renderHome() {
