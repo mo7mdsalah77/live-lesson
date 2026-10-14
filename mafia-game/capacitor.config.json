@@ -1,0 +1,7 @@
+{
+  "appId": "com.mo7mdsalah.imposter",
+  "appName": "Who is the Imposter",
+  "webDir": "www",
+  "backgroundColor": "#14102b",
+  "android": { "allowMixedContent": false }
+}

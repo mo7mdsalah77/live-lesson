@@ -1,0 +1,7 @@
+{
+  "appId": "com.mo7mdsalah.hawadeet",
+  "appName": "Hawadeet",
+  "webDir": "www",
+  "backgroundColor": "#1b1a4a",
+  "android": { "allowMixedContent": false }
+}
