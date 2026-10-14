@@ -6,7 +6,7 @@
     ar: { title: 'مكعبات', sub: 'اللعبة الكلاسيكية', how: 'كمّل الصفوف عشان تختفي', how2: 'الأزرار أسفل الشاشة · أو الأسهم على الكيبورد', tap: 'اضغط للبدء', score: 'النقاط', level: 'المستوى', lines: 'الصفوف', next: 'التالي', best: 'الأعلى', over: 'انتهت اللعبة', again: 'العب تاني', lang: 'English', paused: 'استراحة', resume: 'اضغط للمتابعة' },
     en: { title: 'Blocks', sub: 'The classic falling-blocks game', how: 'Complete rows to clear them', how2: 'Buttons below · or arrow keys on a keyboard', tap: 'Tap to start', score: 'Score', level: 'Level', lines: 'Lines', next: 'Next', best: 'Best', over: 'Game over', again: 'Play again', lang: 'العربية', paused: 'Break', resume: 'Tap to resume' }
   };
-  var lang = 'ar'; try { lang = localStorage.getItem('blocks.lang') === 'en' ? 'en' : 'ar'; } catch (e) {}
+  var lang = (navigator.language || '').toLowerCase().indexOf('ar') === 0 ? 'ar' : 'en'; try { var saved = localStorage.getItem('blocks.lang'); if (saved === 'ar' || saved === 'en') lang = saved; } catch (e) {}
   function t(k) { return TXT[lang][k]; }
   var best = 0; try { best = +localStorage.getItem('blocks.best') || 0; } catch (e) {}
 

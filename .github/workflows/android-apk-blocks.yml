@@ -1,0 +1,48 @@
+name: Android APK (Blocks)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['claude/mobile-game-android-launch-o74u9v']
+    paths: ['blocks-game/**', '.github/workflows/android-apk-blocks.yml']
+
+defaults:
+  run:
+    working-directory: blocks-game
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK 36
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - run: npm ci
+      - run: npm test
+      - name: Build installable debug APK
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+        run: npx cap sync android && cd android && ./gradlew assembleDebug
+      - name: Name the APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/blocks.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blocks-apk
+          if-no-files-found: error
+          path: ${{ runner.temp }}/blocks.apk
+      - name: Publish a download link (GitHub pre-release)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "blocks-apk-${{ github.run_number }}" "$RUNNER_TEMP/blocks.apk" \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease \
+            --title "Blocks / مكعبات (APK build ${{ github.run_number }})" \
+            --notes "Debug-signed APK for installing directly on an Android phone. English and Arabic."
