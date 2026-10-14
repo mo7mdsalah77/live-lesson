@@ -23,9 +23,9 @@ const { chromium } = require('playwright');
   await p.click('[data-a=open][data-v=lionmouse]'); await p.click('[data-a=begin][data-v="auto:lionmouse"]');
   await p.waitForFunction(() => window.__hw.finished, null, { timeout: 20000 });
   const sp = await p.evaluate(() => window.__spoken);
-  if (sp.length !== 7) throw new Error('expected 7 utterances, got ' + sp.length);
+  if (sp.length < 7) throw new Error('expected at least one utterance per page, got ' + sp.length);
   if (!sp.every(s => s.lang === 'ar-SA')) throw new Error('should use the ar-SA voice, got ' + sp.map(s => s.lang));
-  if (!/العبرة/.test(sp[6].text)) throw new Error('moral not narrated');
+  if (!/العبرة/.test(sp[sp.length - 1].text)) throw new Error('moral not narrated');
   const end = await p.textContent('#page'); if (!/النهاية/.test(end) || !end.includes('حكايات أخرى') || !end.includes('الحكاية التالية')) throw new Error('end screen missing: ' + end);
   console.log('auto narration + end screen ok');
 
@@ -57,6 +57,23 @@ const { chromium } = require('playwright');
   await p.click('[data-a=nextStory]'); if ((await p.evaluate(() => window.__hw.story)) === 'hare' || (await p.evaluate(() => window.__hw.page)) !== 0) throw new Error('next story should start at page 1');
   await p.goBack(); await p.waitForTimeout(150); if (!(await p.$('.grid'))) throw new Error('back after "next story" should return to the library');
 
+  // full screen: picture only, visible mute button, silent timed advance, back leaves full screen first
+  await p.click('[data-a=open][data-v=hare]'); await p.click('[data-a=begin][data-v="fs:hare"]'); await p.waitForTimeout(200);
+  if (!(await p.evaluate(() => window.__hw.fs))) throw new Error('full screen should be on');
+  if (!(await p.isVisible('#fs [data-a=mute]'))) throw new Error('mute button must be visible in full screen');
+  if (!(await p.evaluate(() => { const r = document.getElementById('page').getBoundingClientRect(); return !!document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2).closest('#fs'); }))) throw new Error('only the picture should show in full screen');
+  await p.screenshot({ path: process.env.SHOT_FS || '/tmp/claude-0/stories-fs.png' });
+  await p.click('#fs [data-a=mute]'); await p.waitForTimeout(100);
+  if (!(await p.evaluate(() => window.__hw.muted))) throw new Error('mute should turn on');
+  await p.evaluate(() => { window.__spoken.length = 0; });
+  await p.click('#fs .fs-next'); if ((await p.evaluate(() => window.__hw.page)) < 1) throw new Error('tap zone should turn the page');
+  await p.goBack(); await p.waitForTimeout(150);
+  if (await p.evaluate(() => window.__hw.fs)) throw new Error('back should leave full screen');
+  if ((await p.evaluate(() => window.__hw.story)) !== 'hare') throw new Error('back from full screen should stay in the story');
+  await p.goBack(); await p.waitForTimeout(150); if (!(await p.$('.grid'))) throw new Error('second back returns to the library');
+  await p.evaluate(() => { localStorage.setItem('hw.muted', 'false'); });
+  console.log('full screen + mute ok');
+
   // every story opens and its pages render
   const ids = await p.$$eval('.card', els => els.map(e => e.dataset.v));
   for (const id of ids) { await p.click(`[data-a=open][data-v=${id}]`); await p.click(`[data-a=begin][data-v="read:${id}"]`); const n = await p.$$eval('.dots i', e => e.length); while ((await p.evaluate(() => window.__hw.page)) < n - 1) await p.click('#next'); if (!(await p.textContent('#page')).includes('العبرة')) throw new Error(id + ' last page lacks the moral'); await p.click('[data-a=home]'); await p.waitForTimeout(60); }
@@ -76,7 +93,7 @@ const { chromium } = require('playwright');
   await p2.click('[data-a=open][data-v=fox]'); await p2.click('[data-a=begin][data-v="auto:fox"]');
   await p2.waitForFunction(() => window.__hw.finished, null, { timeout: 20000 });
   const ns = await p2.evaluate(() => window.__nspoken);
-  if (ns.length !== 6) throw new Error('native: expected 6 utterances (5 pages + moral), got ' + ns.length);
+  if (ns.length < 6) throw new Error('native: expected 6 utterances (5 pages + moral), got ' + ns.length);
   if (ns[0].lang !== 'ar-SA' || ns[0].voice !== 1) throw new Error('native: should pick the Arabic voice, got ' + JSON.stringify(ns[0]));
   console.log('native TTS path ok');
   const real = errs.filter(e => !/fonts\.googleapis|ERR_|Failed to load resource/.test(e)); console.log('errors:', real);

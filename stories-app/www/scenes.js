@@ -76,7 +76,7 @@
   function render(uid, bg, items, opts) {
     opts = opts || {}; var cover = !!opts.cover, u = uid + '_', b = BG[bg] || BG.field, cfg = FX[bg] || { fx: [], haze: 0 };
     var list = (items || []).map(function (it, i) { return { it: it, i: i }; }).sort(function (a, c) { return (a.it[2] + ((a.it[4] || '').indexOf('z') >= 0 ? 200 : 0)) - (c.it[2] + ((c.it[4] || '').indexOf('z') >= 0 ? 200 : 0)); });
-    return '<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" role="img" xmlns="http://www.w3.org/2000/svg">' + defs(u) +
+    return '<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid ' + (opts.fit || 'slice') + '" role="img" xmlns="http://www.w3.org/2000/svg">' + defs(u) +
       '<g class="' + (cover ? '' : 'cam-bg') + '">' + b(u) + '</g>' + (cover ? '' : '<g class="cam-mid">' + effects(u, bg, cfg) + '</g>') +
       '<g class="' + (cover ? '' : 'cam-fg') + '">' + list.map(function (l) { return item(l.it, l.i, u, cover); }).join('') + '</g>' +
       '<rect width="400" height="300" fill="url(#' + u + 'vg)" pointer-events="none"/>' + (cover ? '' : '<rect width="400" height="300" filter="url(#' + u + 'gr)" opacity=".16" pointer-events="none" style="mix-blend-mode:overlay"/>') + '</svg>';
