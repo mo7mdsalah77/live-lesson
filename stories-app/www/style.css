@@ -140,4 +140,8 @@ body.is-fs { overflow: hidden; }
 #fs .fs-dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.3); }
 #fs .fs-dots i.on { background: var(--gold, #f5c451); }
 #fs .fs-nav { position: absolute; top: 90px; bottom: 40px; width: 28%; z-index: 2; background: transparent; }
-#fs .fs-prev { right: 0; } #fs .fs-next { left: 0; }
+#fs .fs-prev { inset-inline-start: 0; } #fs .fs-next { inset-inline-end: 0; }
+
+.langseg { display: inline-flex; margin: 0 auto 10px; max-width: 260px; }
+.hero { text-align: center; }
+.hero .langseg { display: flex; justify-content: center; }

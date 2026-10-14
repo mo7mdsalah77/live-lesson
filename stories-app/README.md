@@ -14,6 +14,8 @@ Run: open `www/index.html`. Tests: `node --test tests/data.test.cjs` (content ch
 Note: speech quality depends on the voices installed on the device (Android: Settings > Text-to-speech > install Arabic).
 
 ## Android APK
+**Languages:** Arabic (vocalised MSA) and English; switch with the العربية / English buttons on the library screen or in the reader. Layout direction, voices and narration follow the chosen language (English texts live in `www/stories-en.js`).
+
 **Full screen:** from a story's start sheet choose «شاشة كاملة» (or tap ⛶ in the reader): only the picture is shown, with an always-visible mute button (🔇). Muted, the pages still turn on a timer so a parent can tell the story aloud; tap the screen sides (or swipe) to turn pages yourself. The phone's back button leaves full screen first.
 
 **Arabic voice quality** depends on the phone's text-to-speech engine, not the app. Install *Speech Services by Google* and download the Arabic voice, then pick it from the voice list (a short sample is spoken when you choose one). Text is read sentence by sentence at a slow default speed.

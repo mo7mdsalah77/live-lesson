@@ -34,3 +34,12 @@ test('every scene uses a known background and known assets inside the picture', 
     assert.ok(/^<svg/.test(Scenes.render('t', p.s[0], p.s[1])));
   }));
 });
+
+test('English text exists for every story, page for page', () => {
+  require('../www/stories-en.js'); const E = global.STORIES_EN;
+  S.forEach(s => {
+    const e = E[s.id]; assert.ok(e, s.id + ' has English');
+    assert.ok(e.title && e.moral, s.id); assert.strictEqual(e.p.length, s.pages.length, s.id + ' page count');
+    e.p.forEach((t, i) => { assert.ok(!/[؀-ۿ]/.test(t), s.id + ' page ' + i + ' has Arabic letters'); assert.ok(t.split(/\s+/).length <= 45, s.id + ' page ' + i + ' long'); });
+  });
+});

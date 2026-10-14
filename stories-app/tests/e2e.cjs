@@ -11,7 +11,7 @@ const { chromium } = require('playwright');
     window.__spoken = [];
     window.SpeechSynthesisUtterance = function (t) { this.text = t; };
     Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: { speak(u) { window.__spoken.push({ text: u.text, lang: u.lang, rate: u.rate }); setTimeout(() => { u.onboundary && u.onboundary({ charIndex: 0 }); u.onend && u.onend(); }, 60); }, cancel() {}, addEventListener() {},
-      getVoices() { return [{ lang: 'ar-EG', name: 'Arabic (Egypt)', voiceURI: 'eg' }, { lang: 'ar-SA', name: 'Arabic (Saudi)', voiceURI: 'sa' }]; } } });
+      getVoices() { return [{ lang: 'ar-EG', name: 'Arabic (Egypt)', voiceURI: 'eg' }, { lang: 'ar-SA', name: 'Arabic (Saudi)', voiceURI: 'sa' }, { lang: 'en-US', name: 'English (US)', voiceURI: 'us' }, { lang: 'en-GB', name: 'English (UK)', voiceURI: 'gb' }]; } } });
   });
   await p.goto(url); await p.waitForTimeout(300);
   if ((await p.$$eval('.card', e => e.length)) < 20) throw new Error('expected 20+ cards');
@@ -73,6 +73,23 @@ const { chromium } = require('playwright');
   await p.goBack(); await p.waitForTimeout(150); if (!(await p.$('.grid'))) throw new Error('second back returns to the library');
   await p.evaluate(() => { localStorage.setItem('hw.muted', 'false'); });
   console.log('full screen + mute ok');
+
+  // English: library, direction, narration with an English voice, switching back
+  await p.evaluate(() => { window.__spoken.length = 0; });
+  await p.reload(); await p.waitForTimeout(300);
+  await p.click('.langseg [data-a=lang][data-v=en]'); await p.waitForTimeout(100);
+  if ((await p.evaluate(() => document.documentElement.dir)) !== 'ltr') throw new Error('English should be left-to-right');
+  if (!(await p.textContent('body')).includes('The Lion and the Mouse')) throw new Error('English titles missing');
+  await p.click('[data-a=open][data-v=lionmouse]'); await p.click('[data-a=begin][data-v="auto:lionmouse"]');
+  await p.waitForFunction(() => window.__hw.finished, null, { timeout: 20000 });
+  const se = await p.evaluate(() => window.__spoken);
+  if (!se.length || !se.every(x => x.lang === 'en-US')) throw new Error('English narration should use en-US, got ' + se.map(x => x.lang));
+  if (!se.some(x => /Moral/.test(x.text)) || se.some(x => /[؀-ۿ]/.test(x.text))) throw new Error('English narration text wrong');
+  if (!/The End/.test(await p.textContent('#page'))) throw new Error('English end screen');
+  await p.goBack(); await p.waitForTimeout(150);
+  await p.click('.langseg [data-a=lang][data-v=ar]'); await p.waitForTimeout(100);
+  if ((await p.evaluate(() => document.documentElement.dir)) !== 'rtl' || !(await p.textContent('body')).includes('الأسد والفأر')) throw new Error('switch back to Arabic');
+  console.log('english ok');
 
   // every story opens and its pages render
   const ids = await p.$$eval('.card', els => els.map(e => e.dataset.v));

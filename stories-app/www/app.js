@@ -9,28 +9,45 @@
     noVoice: 'لا يوجد صوت عربي على هذا الجهاز. ثبّت الصوت العربي من إعدادات الجهاز (تحويل النص إلى كلام)، أو اقرأ الحكاية بنفسك.', autoVoice: 'الصوت التلقائي', tipRead: 'نصيحة: غيّر صوتك مع كل شخصية، فيحب الأطفال ذلك.',
     full: 'شاشة كاملة', fullSub: 'الصورة فقط، ويمكنك كتم الصوت لتحكي بنفسك', fsExit: 'خروج من الشاشة الكاملة', sound: 'الصوت', muteOn: 'كتم', muteLabel: 'كتم الصوت', unmuteLabel: 'تشغيل الصوت', mutedNote: 'الصوت مكتوم', voiceHelp: 'لنطق أفضل: ثبّت «خدمات الكلام من Google» من متجر Play ثم حمّل الصوت العربي، واختر الصوت من القائمة.', rotate: 'أدر الجوال أفقيًا لصورة أكبر',
   };
-  function T(k) { return UI[k] || k; }
+  var UI_EN = {
+    app: 'Hawadeet', tag: 'Classic and world stories for children', all: 'All', nights: 'Arabian Nights', folk: 'Folk tales', wisdom: 'Fables', world: 'Famous stories',
+    pages: 'pages', done: 'Finished ✓', cont: 'Continue', foot: 'Pick a story and let the app tell it, or tell it to your children yourself.',
+    auto: 'Tell me the story', autoSub: 'The app narrates and turns the pages by itself', read: 'I will read it myself', readSub: 'Large text for a parent to read aloud', resume: 'Continue from page', close: 'Close',
+    prev: 'Previous', next: 'Next', play: 'Tell', pause: 'Pause', listen: 'Listen to this page', stop: 'Stop', mode: 'Mode', modeAuto: 'Narrate', modeRead: 'Read', speed: 'Speed',
+    slow: 'Slow', normal: 'Normal', fast: 'Fast', size: 'Text size', voice: 'Voice', theEnd: 'The End', moral: 'Moral', again: 'Read from the start', home: 'More stories', nextStory: 'Next story', finished: 'Story finished',
+    noVoice: 'No English voice was found on this device. Install one in the phone\'s text-to-speech settings, or read the story yourself.', autoVoice: 'Automatic voice', tipRead: 'Tip: use a different voice for each character, children love it.',
+    full: 'Full screen', fullSub: 'Picture only, mute the sound to tell the story yourself', fsExit: 'Exit full screen', muteLabel: 'Mute', unmuteLabel: 'Unmute', mutedNote: 'Sound is muted',
+    voiceHelp: 'For a better voice: install "Speech Services by Google" from Play Store, download the English voice, then pick it from the list.', lang: 'Language', sample: 'Hello my friend, let us hear a lovely story.'
+  };
+  function T(k) { return (S.lang === 'en' && UI_EN[k]) || UI[k] || k; }
+  function sTitle(st) { return S.lang === 'en' && window.STORIES_EN[st.id] ? window.STORIES_EN[st.id].title : st.title; }
+  function sMoral(st) { return S.lang === 'en' && window.STORIES_EN[st.id] ? window.STORIES_EN[st.id].moral : st.moral; }
+  function sText(st, i) { return S.lang === 'en' && window.STORIES_EN[st.id] ? window.STORIES_EN[st.id].p[i] : st.pages[i].t; }
+  var RTL = function () { return S.lang !== 'en'; };
+  function applyLang() { var d = document.documentElement; d.lang = S.lang; d.dir = RTL() ? 'rtl' : 'ltr'; document.title = T('app'); }
   function load(k, d) { try { var v = localStorage.getItem('hw.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
   function save(k, v) { try { localStorage.setItem('hw.' + k, JSON.stringify(v)); } catch (e) {} }
-  var S = { kind: 'all', mode: load('mode', 'auto'), rate: load('rate2', 0.8), muted: load('muted', false), fs: false, scale: load('scale', 1.05), voiceURI: load('voice', ''), progress: load('progress', {}), story: null, page: 0, playing: false, ended: false, finished: false };
+  var S = { lang: load('lang', 'ar'), kind: 'all', mode: load('mode', 'auto'), rate: load('rate2', 0.8), muted: load('muted', false), fs: false, scale: load('scale', 1.05), voiceURI: load(load('lang', 'ar') === 'en' ? 'voiceEn' : 'voice', ''), progress: load('progress', {}), story: null, page: 0, playing: false, ended: false, finished: false };
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function toast(m) { toastEl.textContent = m; toastEl.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { toastEl.hidden = true; }, 3200); }
-  document.documentElement.lang = 'ar'; document.documentElement.dir = 'rtl';
+  
 
   // ---------- speech: native Android plugin inside the APK, speechSynthesis in a browser
   var cap = window.Capacitor, NT = cap && cap.isNativePlatform && cap.isNativePlatform() && cap.Plugins && cap.Plugins.TextToSpeech ? cap.Plugins.TextToSpeech : null;
-  var synth = window.speechSynthesis || null, voices = [], token = 0, speaking = false, hlTimer = null, pageTimer = null;
+  var synth = window.speechSynthesis || null, allV = [], voices = [], token = 0, speaking = false, hlTimer = null, pageTimer = null;
+  function setVoices() { var re = S.lang === 'en' ? /^en/i : /^ar/i; voices = allV.filter(function (v) { return re.test(v.lang || ''); }); }
+  function vkey() { return S.lang === 'en' ? 'voiceEn' : 'voice'; }
   function loadVoices() {
     if (NT) {
-      NT.getSupportedVoices().then(function (r) { var all = (r && r.voices ? r.voices : []).map(function (v, i) { return { i: i, voiceURI: v.voiceURI || String(i), name: v.name || v.voiceURI || ('voice ' + i), lang: v.lang || '' }; }); voices = all.filter(function (v) { return /^ar/i.test(v.lang); }); if (S.story) renderReader(); }).catch(function () {});
+      NT.getSupportedVoices().then(function (r) { var all = (r && r.voices ? r.voices : []).map(function (v, i) { return { i: i, voiceURI: v.voiceURI || String(i), name: v.name || v.voiceURI || ('voice ' + i), lang: v.lang || '' }; }); allV = all; setVoices(); if (S.story) renderReader(); }).catch(function () {});
       return;
     }
-    if (!synth) return; voices = (synth.getVoices() || []).filter(function (v) { return /^ar/i.test(v.lang || ''); });
+    if (!synth) return; allV = (synth.getVoices() || []).map(function (v) { return v; }); setVoices();
   }
   loadVoices(); if (!NT && synth && synth.addEventListener) synth.addEventListener('voiceschanged', function () { loadVoices(); if (S.story) renderReader(); });
   function pickVoice() {
     if (S.voiceURI) { var m = voices.filter(function (v) { return v.voiceURI === S.voiceURI; })[0]; if (m) return m; }
-    var pref = [/ar[-_]SA/i, /ar[-_]XA/i, /ar[-_]EG/i, /saudi|السعود|arabic/i];
+    var pref = S.lang === 'en' ? [/en[-_]US/i, /en[-_]GB/i, /english/i] : [/ar[-_]SA/i, /ar[-_]XA/i, /ar[-_]EG/i, /saudi|السعود|arabic/i];
     for (var i = 0; i < pref.length; i++) { var f = voices.filter(function (v) { return pref[i].test(v.lang) || pref[i].test(v.name); })[0]; if (f) return f; }
     return voices[0] || null;
   }
@@ -43,13 +60,13 @@
       if (my !== token) return; if (i >= parts.length) { speaking = false; if (onDone) onDone(); return; }
       var p = parts[i++];
       if (NT) {
-        var opts = { text: p.text, lang: v && v.lang ? v.lang : 'ar-SA', rate: S.rate, pitch: 1.05, volume: 1, category: 'playback', queueStrategy: 0 };
+        var opts = { text: p.text, lang: v && v.lang ? v.lang : (S.lang === 'en' ? 'en-US' : 'ar-SA'), rate: S.rate, pitch: 1.05, volume: 1, category: 'playback', queueStrategy: 0 };
         if (v && typeof v.i === 'number') opts.voice = v.i;
         if (p.hl) estimateHighlight(my, p.off);
         NT.speak(opts).then(function () { if (my === token) { clearInterval(hlTimer); clearHl(); next(); } }).catch(function () { if (my === token) { speaking = false; S.playing = false; clearInterval(hlTimer); updateControls(); toast(T('noVoice')); } });
         return;
       }
-      var u = new window.SpeechSynthesisUtterance(p.text); u.lang = v ? v.lang : 'ar-SA'; if (v) u.voice = v; u.rate = S.rate; u.pitch = 1.05;
+      var u = new window.SpeechSynthesisUtterance(p.text); u.lang = v ? v.lang : (S.lang === 'en' ? 'en-US' : 'ar-SA'); if (v) u.voice = v; u.rate = S.rate; u.pitch = 1.05;
       u.onboundary = function (e) { if (my === token && p.hl) highlight((p.off || 0) + (e.charIndex || 0)); };
       u.onend = function () { if (my === token) { clearHl(); next(); } };
       u.onerror = function () { if (my === token) { speaking = false; S.playing = false; updateControls(); } };
@@ -66,8 +83,8 @@
     return out.length ? out : [{ text: spoken(text), off: 0, hl: true }];
   }
   function pageParts() {
-    var st = S.story, parts = chunks(st.pages[S.page].t);
-    if (S.page === st.pages.length - 1) parts.push({ text: T('moral') + ': ' + spoken(st.moral), off: 0, hl: false });
+    var st = S.story, parts = chunks(sText(st, S.page));
+    if (S.page === st.pages.length - 1) parts.push({ text: T('moral') + ': ' + spoken(sMoral(st)), off: 0, hl: false });
     return parts;
   }
   function highlight(ci) { var ws = document.querySelectorAll('.page .w'), best = null, i; for (i = 0; i < ws.length; i++) { if (+ws[i].dataset.c <= ci) best = ws[i]; } clearHl(); if (best) best.classList.add('hl'); }
@@ -90,23 +107,26 @@
   if (NT && CApp && CApp.addListener) CApp.addListener('backButton', function () { if (depth > 0) navBack(); else if (CApp.exitApp) CApp.exitApp(); });
 
   // ---------- library
+  function langSeg() { return '<div class="seg langseg" role="group" aria-label="Language"><button data-a="lang" data-v="ar" aria-pressed="' + (S.lang === 'ar') + '">العربية</button><button data-a="lang" data-v="en" aria-pressed="' + (S.lang === 'en') + '">English</button></div>'; }
   function cover(st, uid) { var p = st.pages[0]; return window.Scenes.render(uid, p.s[0], p.s[1], { cover: true }); }
   function renderHome() {
     stopSpeech(); S.playing = false; S.story = null;
     var list = STORIES.filter(function (s) { return S.kind === 'all' || s.kind === S.kind; });
-    app.innerHTML = '<div class="hero"><h1>' + T('app') + '</h1><p>' + T('tag') + '</p></div>' +
+    app.innerHTML = '<div class="hero">' + langSeg() + '<h1>' + T('app') + '</h1><p>' + T('tag') + '</p></div>' +
       '<div class="chips" role="group">' + ['all', 'nights', 'folk', 'wisdom', 'world'].map(function (k) { return '<button class="chip" data-a="kind" data-v="' + k + '" aria-pressed="' + (S.kind === k) + '">' + T(k) + '</button>'; }).join('') + '</div>' +
       '<div class="grid">' + list.map(function (st) {
         var pr = S.progress[st.id] || {}, badge = pr.done ? '<span class="badge">' + T('done') + '</span>' : (pr.page > 0 ? '<span class="badge progress">' + T('cont') + '</span>' : '');
-        return '<button class="card" data-a="open" data-v="' + st.id + '">' + badge + '<div class="cover">' + cover(st, 'c' + st.id) + '</div><div class="meta"><h3>' + esc(st.title) + '</h3><small>' + st.pages.length + ' ' + T('pages') + '</small></div></button>';
+        return '<button class="card" data-a="open" data-v="' + st.id + '">' + badge + '<div class="cover">' + cover(st, 'c' + st.id) + '</div><div class="meta"><h3>' + esc(sTitle(st)) + '</h3><small>' + st.pages.length + ' ' + T('pages') + '</small></div></button>';
       }).join('') + '</div><p class="foot">' + T('foot') + '</p>';
   }
 
   // ---------- start sheet
   function openSheet(id) {
+    navPush(); sheet.hidden = false; sheet.dataset.id = id; fillSheet(id);
+  }
+  function fillSheet(id) {
     var st = byId(id), pr = S.progress[id] || {}, warn = (!ttsOK() || (!voices.length && !NT)) ? '<div class="warn">' + T('noVoice') + '</div>' : '';
-    navPush(); sheet.hidden = false;
-    sheet.innerHTML = '<div class="sheet" role="dialog" aria-modal="true"><div class="cover">' + cover(st, 's' + st.id) + '</div><h2>' + esc(st.title) + '</h2>' + warn +
+    sheet.innerHTML = '<div class="sheet" role="dialog" aria-modal="true"><div class="cover">' + cover(st, 's' + st.id) + '</div><h2>' + esc(sTitle(st)) + '</h2>' + warn +
       '<button class="big auto" data-a="begin" data-v="auto:' + id + '"><span class="ic">🔊</span><span>' + T('auto') + '<small>' + T('autoSub') + '</small></span></button>' +
       '<button class="big full" data-a="begin" data-v="fs:' + id + '"><span class="ic">⛶</span><span>' + T('full') + '<small>' + T('fullSub') + '</small></span></button>' +
       '<button class="big read" data-a="begin" data-v="read:' + id + '"><span class="ic">📖</span><span>' + T('read') + '<small>' + T('readSub') + '</small></span></button>' +
@@ -129,23 +149,23 @@
     var st = S.story; if (!st) return; var pg = st.pages[S.page], last = S.page === st.pages.length - 1;
     document.documentElement.style.setProperty('--scale', S.scale);
     var voiceOpts = voices.length ? '<select id="voice" aria-label="' + T('voice') + '"><option value="">' + T('autoVoice') + '</option>' + voices.map(function (v) { return '<option value="' + esc(v.voiceURI) + '"' + (v.voiceURI === S.voiceURI ? ' selected' : '') + '>' + esc(v.name) + '</option>'; }).join('') + '</select>' : '';
-    var head = '<div class="bar"><button class="round" data-a="home" aria-label="' + T('home') + '">🏠</button><div class="title">' + esc(st.title) + '</div>' + (S.mode === 'auto' ? muteBtn('round') : '') + '<button class="round" data-a="fs" aria-label="' + T('full') + '">⛶</button></div>' +
+    var head = '<div class="bar"><button class="round" data-a="home" aria-label="' + T('home') + '">🏠</button><div class="title">' + esc(sTitle(st)) + '</div>' + (S.mode === 'auto' ? muteBtn('round') : '') + '<button class="round" data-a="fs" aria-label="' + T('full') + '">⛶</button></div>' +
       '<div class="dots">' + st.pages.map(function (_, i) { return '<i class="' + (i <= S.page ? 'on' : '') + '"></i>'; }).join('') + '</div>' +
       '<div class="stage flip" id="stage">' + window.Scenes.render('r' + S.page, pg.s[0], pg.s[1]) + '</div>';
     if (S.finished) {
       var nx = nextStoryOf(st);
-      app.innerHTML = head + '<div class="page end" id="page"><p class="the-end">🌙 ' + T('theEnd') + '</p><div class="moral"><b>' + T('moral') + ':</b> ' + esc(st.moral) + '</div>' +
-        '<button class="ctl main" data-a="again">🔁 ' + T('again') + '</button><button class="ctl" data-a="nextStory" data-v="' + nx.id + '">➡️ ' + T('nextStory') + ': ' + esc(nx.title) + '</button><button class="ctl" data-a="home">📚 ' + T('home') + '</button></div>';
+      app.innerHTML = head + '<div class="page end" id="page"><p class="the-end">🌙 ' + T('theEnd') + '</p><div class="moral"><b>' + T('moral') + ':</b> ' + esc(sMoral(st)) + '</div>' +
+        '<button class="ctl main" data-a="again">🔁 ' + T('again') + '</button><button class="ctl" data-a="nextStory" data-v="' + nx.id + '">➡️ ' + T('nextStory') + ': ' + esc(sTitle(nx)) + '</button><button class="ctl" data-a="home">📚 ' + T('home') + '</button></div>';
       return;
     }
     var playLabel = S.mode === 'auto' ? (S.playing ? '⏸ ' + T('pause') : '▶ ' + T('play')) : (speaking ? '⏹ ' + T('stop') : '🔊 ' + T('listen'));
     app.innerHTML = head +
-      '<div class="page" id="page"><p id="txt">' + wordsHtml(pg.t) + '</p>' + (last ? '<div class="moral"><b>' + T('moral') + ':</b> ' + esc(st.moral) + '</div>' : '') +
+      '<div class="page" id="page"><p id="txt">' + wordsHtml(sText(st, S.page)) + '</p>' + (last ? '<div class="moral"><b>' + T('moral') + ':</b> ' + esc(sMoral(st)) + '</div>' : '') +
         (S.mode === 'read' && S.page === 0 ? '<p class="note" style="color:#8a6d3b">' + T('tipRead') + '</p>' : '') + '</div>' +
-      '<div class="controls"><button class="ctl" id="prev" data-a="prev"' + (S.page === 0 ? ' disabled' : '') + '>▶ ' + T('prev') + '</button><button class="ctl main" id="play" data-a="play">' + playLabel + '</button><button class="ctl" id="next" data-a="next">' + (last ? '🌙 ' + T('theEnd') : T('next')) + ' ◀</button></div>' +
+      '<div class="controls"><button class="ctl" id="prev" data-a="prev"' + (S.page === 0 ? ' disabled' : '') + '>' + (RTL() ? '▶ ' : '◀ ') + T('prev') + '</button><button class="ctl main" id="play" data-a="play">' + playLabel + '</button><button class="ctl" id="next" data-a="next">' + (last ? '🌙 ' + T('theEnd') : T('next')) + (RTL() ? ' ◀' : ' ▶') + '</button></div>' +
       '<div class="tools"><div class="seg" role="group" aria-label="' + T('mode') + '"><button data-a="mode" data-v="auto" aria-pressed="' + (S.mode === 'auto') + '">🔊 ' + T('modeAuto') + '</button><button data-a="mode" data-v="read" aria-pressed="' + (S.mode === 'read') + '">📖 ' + T('modeRead') + '</button></div>' +
         '<div class="seg" role="group" aria-label="' + T('speed') + '"><button data-a="rate" data-v="0.65" aria-pressed="' + (S.rate === 0.65) + '">' + T('slow') + '</button><button data-a="rate" data-v="0.8" aria-pressed="' + (S.rate === 0.8) + '">' + T('normal') + '</button><button data-a="rate" data-v="1.0" aria-pressed="' + (S.rate === 1) + '">' + T('fast') + '</button></div>' +
-        '<div class="seg" role="group" aria-label="' + T('size') + '"><button data-a="size" data-v="-1" aria-label="-">أ−</button><button data-a="size" data-v="1" aria-label="+">أ+</button></div>' + voiceOpts + '</div><p class="note help">' + T('voiceHelp') + '</p>';
+        '<div class="seg" role="group" aria-label="' + T('size') + '"><button data-a="size" data-v="-1" aria-label="-">' + (RTL() ? 'أ' : 'A') + '−</button><button data-a="size" data-v="1" aria-label="+">' + (RTL() ? 'أ' : 'A') + '+</button></div>' + voiceOpts + '</div><div class="tools">' + langSeg() + '</div><p class="note help">' + T('voiceHelp') + '</p>';
     var pr = S.progress[st.id] || {}; pr.page = S.page; S.progress[st.id] = pr; save('progress', S.progress);
   }
   function updateControls() { var b = document.getElementById('play'); if (b) b.innerHTML = S.mode === 'auto' ? (S.playing ? '⏸ ' + T('pause') : '▶ ' + T('play')) : (speaking ? '⏹ ' + T('stop') : '🔊 ' + T('listen')); }
@@ -181,13 +201,13 @@
           if (S.page >= story.pages.length - 1) { finishStory(); return; }
           pageTimer = setTimeout(function () { if (S.playing && S.story === story && S.page === mine) { S.page++; renderReader(); readPage(); } }, gap);
         }
-        if (silent) { pageTimer = setTimeout(function () { done(0); }, silentMs(story.pages[mine].t)); }
+        if (silent) { pageTimer = setTimeout(function () { done(0); }, silentMs(sText(story, mine))); }
         else speakParts(pageParts(), function () { done(900); });
       })();
     } else { speakParts(pageParts(), function () { updateControls(); }); updateControls(); }
   }
   function pause() { S.playing = false; stopSpeech(); updateControls(); }
-  function sample() { if (S.playing || !ttsOK()) return; speakParts([{ text: 'مرحبًا يا صديقي، هيا نسمع حكاية جميلة.', off: 0, hl: false }], function () {}); }
+  function sample() { if (S.playing || !ttsOK()) return; speakParts([{ text: S.lang === 'en' ? UI_EN.sample : 'مرحبًا يا صديقي، هيا نسمع حكاية جميلة.', off: 0, hl: false }], function () {}); }
 
   // ---------- events
   var actions = {
@@ -204,22 +224,26 @@
     play: function () { if (S.mode === 'auto') { S.playing ? pause() : play(); } else { speaking ? (stopSpeech(), updateControls()) : play(); } },
     mode: function (v) { pause(); S.mode = v; save('mode', v); renderReader(); },
     rate: function (v) { S.rate = +v; save('rate2', S.rate); var was = S.playing; renderReader(); if (was) { stopSpeech(); play(); } },
+    lang: function (v) {
+      if (v === S.lang) return; var was = S.playing; S.playing = false; stopSpeech(); S.lang = v; save('lang', v); S.voiceURI = load(vkey(), ''); setVoices(); applyLang();
+      if (S.story) { renderReader(); if (was && !S.finished) play(); } else renderHome();
+    },
     size: function (v) { S.scale = Math.max(0.85, Math.min(1.7, +(S.scale + 0.15 * +v).toFixed(2))); save('scale', S.scale); renderReader(); }
   };
   document.addEventListener('click', function (e) {
     if (e.target === sheet) return navBack();
     var b = e.target.closest('[data-a]'); if (!b || b.disabled) return; var fn = actions[b.dataset.a]; if (fn) fn(b.dataset.v);
   });
-  document.addEventListener('change', function (e) { if (e.target.id === 'voice') { S.voiceURI = e.target.value; save('voice', S.voiceURI); if (S.playing) { stopSpeech(); play(); } else sample(); } });
+  document.addEventListener('change', function (e) { if (e.target.id === 'voice') { S.voiceURI = e.target.value; save(vkey(), S.voiceURI); if (S.playing) { stopSpeech(); play(); } else sample(); } });
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') { if (S.story || !sheet.hidden) navBack(); return; }
     if (!S.story || S.finished) return; var k = e.key;
-    if (k === 'ArrowLeft') actions.next(); else if (k === 'ArrowRight') actions.prev(); else if (k === 'm') actions.mute(); else if (k === ' ') { e.preventDefault(); actions.play(); }
+    if (k === (RTL() ? 'ArrowLeft' : 'ArrowRight')) actions.next(); else if (k === (RTL() ? 'ArrowRight' : 'ArrowLeft')) actions.prev(); else if (k === 'm') actions.mute(); else if (k === ' ') { e.preventDefault(); actions.play(); }
   });
   var sx = null; // swipe to turn pages (Arabic book direction: drag to the right for the next page)
   document.addEventListener('pointerdown', function (e) { if (S.story && !S.finished && e.target.closest('#stage, #page, #fs')) sx = { x: e.clientX, y: e.clientY }; });
-  document.addEventListener('pointerup', function (e) { if (!sx) return; var dx = e.clientX - sx.x, dy = Math.abs(e.clientY - sx.y); sx = null; if (Math.abs(dx) > 60 && dy < 50) { if (dx > 0) actions.next(); else actions.prev(); } });
+  document.addEventListener('pointerup', function (e) { if (!sx) return; var dx = e.clientX - sx.x, dy = Math.abs(e.clientY - sx.y); sx = null; if (Math.abs(dx) > 60 && dy < 50) { if ((dx > 0) === RTL()) actions.next(); else actions.prev(); } });
   document.addEventListener('visibilitychange', function () { if (document.hidden && S.playing) pause(); });
-  window.__hw = { get page() { return S.page; }, get playing() { return S.playing; }, get ended() { return S.ended; }, get finished() { return S.finished; }, get story() { return S.story && S.story.id; }, get mode() { return S.mode; }, get fs() { return S.fs; }, get muted() { return S.muted; } };   // test hook
-  renderHome();
+  window.__hw = { get page() { return S.page; }, get playing() { return S.playing; }, get ended() { return S.ended; }, get finished() { return S.finished; }, get story() { return S.story && S.story.id; }, get mode() { return S.mode; }, get lang() { return S.lang; }, get fs() { return S.fs; }, get muted() { return S.muted; } };   // test hook
+  applyLang(); setVoices(); renderHome();
 })();
