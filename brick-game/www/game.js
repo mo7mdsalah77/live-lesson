@@ -83,9 +83,9 @@
     paddle.x += (Math.max(paddle.w / 2, Math.min(B.W - paddle.w / 2, targetX)) - paddle.x) * Math.min(1, dt * 28);
     balls.forEach(function (b) { if (b.stuck) { b.x = paddle.x + b.off; b.y = B.PADDLE_Y - B.BALL_R; } else stepBall(b, dt); });
     if (balls.length && !balls[0].stuck) { var m = balls[0]; trail.push({ x: m.x, y: m.y }); if (trail.length > 8) trail.shift(); }
-    balls = balls.filter(function (b) { return b.stuck || b.y < B.H + 20; }); if (!balls.length && state === 'play') loseBall();
+    balls = balls.filter(function (b) { return b.stuck || b.y < B.PADDLE_Y + 90; }); if (!balls.length && state === 'play') loseBall();
     powers.forEach(function (p) { p.y += 130 * dt; if (p.y > B.PADDLE_Y - 6 && p.y < B.PADDLE_Y + 24 && Math.abs(p.x - paddle.x) < paddle.w / 2 + 14) { p.got = true; givePower(p.type); } });
-    powers = powers.filter(function (p) { return !p.got && p.y < B.H + 20; });
+    powers = powers.filter(function (p) { return !p.got && p.y < B.PADDLE_Y + 90; });
     if (B.remaining(bricks) === 0) { var bonus = 100 + 25 * level; score += bonus; level++; bricks = B.buildLevel(level); powers = []; newBall(); banner = { text: t('level') + ' ' + level + ' · ' + t('bonus') + ' +' + bonus, t: 1.8 }; tone(660, 0.15, 'triangle', 0.1, 1320); }
   }
 
@@ -124,7 +124,7 @@
       text(t('score') + ' ' + score, 14, 34, 20, '#fff', 'left', 900); text(t('level') + ' ' + level, B.W / 2 + 16, 34, 15, '#9fb0ff', 'center', 800);
       var hs = ''; for (var i = 0; i < lives; i++) hs += '❤️'; ctx.font = '800 15px ' + FONT; ctx.textAlign = 'right'; ctx.fillStyle = '#fff'; ctx.fillText(hs, B.W - 14, 33);
       if (fx.wide > 0 || fx.slow > 0) text((fx.wide > 0 ? '↔ ' + Math.ceil(fx.wide) : '') + ' ' + (fx.slow > 0 ? '🐢 ' + Math.ceil(fx.slow) : ''), 14, 48, 11, '#4ecdc4', 'left', 800);
-      if (state === 'play' && balls.length && balls[0].stuck) { ctx.globalAlpha = 0.6 + 0.4 * Math.sin(tt * 5); text(t('launch'), B.W / 2, 470, 18, '#ffd23f', 'center', 800); ctx.globalAlpha = 1; }
+      if (state === 'play' && balls.length && balls[0].stuck) { ctx.globalAlpha = 0.6 + 0.4 * Math.sin(tt * 5); text(t('launch'), B.W / 2, 440, 18, '#ffd23f', 'center', 800); ctx.globalAlpha = 1; }
     }
     if (banner) { ctx.globalAlpha = Math.min(1, banner.t * 2); text(banner.text, B.W / 2, 400, 28, '#ffd23f', 'center', 900); ctx.globalAlpha = 1; }
     if (state === 'menu') overlay(function () {

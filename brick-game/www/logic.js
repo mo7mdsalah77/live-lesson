@@ -1,6 +1,6 @@
 // Pure rules for the ruler-and-bricks game. Browser: window.BrickLogic. Tests: require().
 (function (root) {
-  var W = 360, H = 640, PADDLE_Y = 590, PADDLE_H = 14, BALL_R = 7, COLS = 8, BW = 40, BH = 18, TOP = 90, LEFT = (W - COLS * BW) / 2;
+  var W = 360, H = 640, PADDLE_Y = 495, PADDLE_H = 14, BALL_R = 7, COLS = 8, BW = 40, BH = 18, TOP = 90, LEFT = (W - COLS * BW) / 2;
   var COLORS = ['#ff5a6e', '#ff9f43', '#ffd23f', '#5ee27a', '#4ecdc4', '#6bb7ff', '#a58bff'];
 
   function speedFor(level) { return Math.min(560, 330 + 20 * level); }

@@ -13,7 +13,7 @@ const { chromium } = require('playwright');
     const s = await p.evaluate(() => ({ b: window.__brick.balls.map(x => ({ x: x.x, y: x.y, vy: x.vy, stuck: x.stuck })), sc: window.__brick.score, st: window.__brick.state, lv: window.__brick.level }));
     maxScore = Math.max(maxScore, s.sc); maxLevel = Math.max(maxLevel, s.lv); if (s.st !== 'play') break;
     const ball = s.b.filter(x => x.vy > 0).sort((a, c) => c.y - a.y)[0] || s.b[0];
-    if (ball) { if (ball.stuck) await p.mouse.click(180, 400); await p.mouse.move(Math.max(10, Math.min(350, ball.x + (ball.stuck ? 0 : 12))), 600); }
+    if (ball) { if (ball.stuck) await p.mouse.click(180, 400); await p.mouse.move(Math.max(10, Math.min(350, ball.x + (ball.stuck ? 0 : 12))), 590); }
     await p.waitForTimeout(16);
   }
   console.log('bot score:', maxScore, 'level:', maxLevel, 'state:', await p.evaluate(() => window.__brick.state));
