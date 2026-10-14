@@ -2,27 +2,31 @@ const test = require('node:test');
 const assert = require('node:assert');
 global.window = global; require('../www/art.js'); require('../www/stories.js'); const Scenes = require('../www/scenes.js'); const Art = global.Art;
 const S = global.STORIES;
+const MARKS = /[ً-ْ]/g, LETTERS = /[ء-ي]/g;
 
-test('at least 12 stories with unique ids, both dialects for every title, moral and page', () => {
+test('at least 20 stories, each with a title, a vocalised moral and 5-8 pages', () => {
   assert.ok(S.length >= 20);
   assert.strictEqual(new Set(S.map(s => s.id)).size, S.length);
   S.forEach(s => {
     assert.ok(['nights', 'folk', 'world', 'wisdom'].includes(s.kind), s.id);
-    ['eg', 'ar'].forEach(d => { assert.ok(s.title[d] && s.moral[d], s.id + ' ' + d); });
+    assert.ok(typeof s.title === 'string' && s.title.length > 3 && !MARKS.test(s.title), s.id + ' title');
+    assert.ok((s.moral.match(MARKS) || []).length > 6, s.id + ' moral should be vocalised');
     assert.ok(s.pages.length >= 5 && s.pages.length <= 8, s.id);
-    s.pages.forEach((p, i) => ['eg', 'ar'].forEach(d => {
-      assert.ok(p[d] && p[d].length > 30 && p[d].length < 330, `${s.id} p${i + 1} ${d} length ${p[d] && p[d].length}`);
-      assert.ok(/[؀-ۿ]/.test(p[d]), 'arabic text');
-    }));
   });
 });
 
-test('Egyptian and MSA versions differ (real dialects, not copies)', () => {
-  let same = 0, total = 0; S.forEach(s => s.pages.forEach(p => { total++; if (p.eg === p.ar) same++; }));
-  assert.ok(same / total < 0.1, `${same}/${total} identical pages`);
+test('every page is simple, fully vocalised Arabic with short sentences', () => {
+  S.forEach(s => s.pages.forEach((p, i) => {
+    assert.ok(p.t && p.t.length > 30 && p.t.length < 520, `${s.id} p${i + 1} length ${p.t && p.t.length}`);
+    assert.ok(/[؀-ۿ]/.test(p.t) && !/[A-Za-z]/.test(p.t), `${s.id} p${i + 1} arabic only`);
+    const marks = (p.t.match(MARKS) || []).length, letters = (p.t.match(LETTERS) || []).length;
+    assert.ok(marks / letters > 0.45, `${s.id} p${i + 1} should be fully vocalised (${marks}/${letters})`);
+    p.t.split(/[.!؟?]/).forEach(x => assert.ok(x.trim().split(/\s+/).length <= 26, `${s.id} p${i + 1} has a very long sentence`));
+    assert.ok(!('eg' in p) && !('ar' in p), 'no dialect fields left');
+  }));
 });
 
-test('every scene uses a known background and keeps characters inside the picture', () => {
+test('every scene uses a known background and known assets inside the picture', () => {
   S.forEach(s => s.pages.forEach((p, i) => {
     assert.ok(Scenes.backgrounds.includes(p.s[0]), `${s.id} p${i + 1} bg ${p.s[0]}`);
     assert.ok(p.s[1].length >= 2 && p.s[1].length <= 6, `${s.id} p${i + 1} items`);

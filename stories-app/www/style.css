@@ -115,3 +115,9 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--gold); out
 .flash { animation: flash 5s infinite; }
 @keyframes flash { 0%, 92%, 100% { opacity: 0; } 94% { opacity: 1; } 96% { opacity: .2; } 97% { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .stage svg *, .stage svg { animation: none !important; } }
+
+/* ---- end-of-story card */
+.page.end { align-items: stretch; text-align: center; gap: 12px; }
+.page.end .ctl { background: var(--night-2); color: #fff; min-height: 54px; padding: 8px 14px; }
+.page.end .ctl.main { background: var(--gold); color: #4a2f00; }
+.page.end .the-end { font-size: 44px; }

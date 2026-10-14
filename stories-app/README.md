@@ -1,8 +1,8 @@
 # حواديت / Hawadeet – kids' story book app
 
-21 well-known tales (Arabian Nights, Egyptian folk tales, fables and classics) with illustrated scenes, in **Egyptian dialect** and **Modern Standard Arabic**. Every page has both versions plus a moral at the end.
+21 well-known tales (Arabian Nights, Egyptian/Arab folk tales, Kalila wa Dimna fables and classics) with illustrated scenes, told in **simple, fully vocalised (mushakkal) Modern Standard Arabic**. The vocalisation makes the text readable for children and makes text-to-speech voices pronounce every word correctly. Every story ends with a moral and an end screen.
 
-- **Auto-narration**: the device reads the story aloud with its Arabic text-to-speech voice (prefers an `ar-EG` voice for the Egyptian version), highlights the word being read and turns the pages by itself. Speed: slow / normal / fast; voice picker; pauses when the app goes to the background.
+- **Auto-narration**: the device reads the story aloud with its Arabic text-to-speech voice (prefers `ar-SA`/`ar-XA`), highlights the word being read and turns the pages by itself. Speed: slow / normal / fast; voice picker; pauses when the app goes to the background.
 - **Read-it-yourself**: large written text so a parent can tell the story; a "listen to this page" button is optional.
 - Library with filters (Arabian Nights / folk tales / Kalila wa Dimna fables / world tales), progress badges and resume, text-size control, swipe or buttons to turn pages. Fully offline, no ads, no tracking.
 
@@ -17,3 +17,5 @@ Note: speech quality depends on the voices installed on the device (Android: Set
 Package `com.mo7mdsalah.hawadeet`, no permissions, fully offline (fonts are bundled in `www/fonts`). The app name follows the phone language (حواديت / Hawadeet). Inside the APK the narration uses the native Android text-to-speech plugin (`@capacitor-community/text-to-speech`), in the browser it uses `speechSynthesis`.
 `.github/workflows/android-apk-stories.yml` builds an installable debug APK on every push that touches `stories-app/` and publishes it as a GitHub pre-release (`stories-apk-<run>`).
 Illustrations: `www/art.js` draws cel-shaded characters, animals and props; `www/scenes.js` composes layered backgrounds with light rays, particles and slow camera drift; scene data lives in `www/stories.js`.
+
+Navigation: the phone's back button goes end screen/reader -> library -> exit (history API); the on-screen home button uses the same path.
