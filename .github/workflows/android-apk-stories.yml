@@ -1,0 +1,51 @@
+name: Android APK (Hawadeet)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['claude/mobile-game-android-launch-o74u9v']
+    paths: ['stories-app/**', '.github/workflows/android-apk-stories.yml']
+
+defaults:
+  run:
+    working-directory: stories-app
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - name: Install Android SDK 36 (the runner already ships the SDK)
+        working-directory: .
+        run: |
+          SDKM=$(ls -d "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager | sort -V | tail -1)
+          yes | "$SDKM" --licenses > /dev/null || true
+          "$SDKM" --install "platforms;android-36" "build-tools;36.0.0"
+      - run: npm ci
+      - run: npm test
+      - name: Build installable debug APK
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+        run: npx cap sync android && cd android && ./gradlew assembleDebug
+      - name: Name the APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/hawadeet.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stories-apk
+          if-no-files-found: error
+          path: ${{ runner.temp }}/hawadeet.apk
+      - name: Publish a download link (GitHub pre-release)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "stories-apk-${{ github.run_number }}" "$RUNNER_TEMP/hawadeet.apk" \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease \
+            --title "Hawadeet / حواديت (APK build ${{ github.run_number }})" \
+            --notes "Debug-signed APK for installing directly on an Android phone. Egyptian + Modern Standard Arabic kids stories."

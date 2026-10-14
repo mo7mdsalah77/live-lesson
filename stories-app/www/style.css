@@ -83,3 +83,35 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--gold); out
 .tools select { background: var(--night-2); color: #fff; border: 0; border-radius: 12px; padding: 8px 10px; font: inherit; font-size: 14px; min-height: 40px; max-width: 100%; }
 #toast { position: fixed; top: calc(14px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); background: #000d; border: 1px solid var(--gold); border-radius: 14px; padding: 10px 16px; z-index: 20; max-width: 90%; text-align: center; font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { .bob, .stage.flip, .sheet { animation: none; } }
+
+/* ---- cinematic scene motion */
+.stage svg .cam-bg { animation: camBg 18s ease-in-out infinite alternate; transform-origin: 200px 150px; }
+.stage svg .cam-mid { animation: camMid 18s ease-in-out infinite alternate; transform-origin: 200px 150px; }
+.stage svg .cam-fg { animation: camFg 18s ease-in-out infinite alternate; transform-origin: 200px 150px; }
+@keyframes camBg { from { transform: scale(1.04) translate(-3px, 0); } to { transform: scale(1.04) translate(3px, -1px); } }
+@keyframes camMid { from { transform: scale(1.04) translate(-5px, 0); } to { transform: scale(1.04) translate(5px, -1px); } }
+@keyframes camFg { from { transform: scale(1.04) translate(-8px, 0); } to { transform: scale(1.04) translate(8px, 1px); } }
+.idle { animation: breathe 3.4s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+@keyframes breathe { 50% { transform: scale(1.015, 1.03); } }
+.hover { animation: hover 2.6s ease-in-out infinite; }
+@keyframes hover { 50% { transform: translateY(-6px); } }
+.blink { animation: blink 4.6s infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.08); } }
+.rays { animation: rays 7s ease-in-out infinite alternate; }
+@keyframes rays { from { opacity: .35; } to { opacity: 1; } }
+.pulse { animation: rays 4s ease-in-out infinite alternate; }
+.twinkle { animation: twinkle 3s ease-in-out infinite; }
+@keyframes twinkle { 50% { opacity: .2; } }
+.mote { animation: mote 12s linear infinite; }
+@keyframes mote { from { transform: translate(0, 0); opacity: 0; } 15% { opacity: .9; } to { transform: translate(14px, -46px); opacity: 0; } }
+.firefly { animation: firefly 8s ease-in-out infinite; }
+@keyframes firefly { 0%, 100% { transform: translate(0, 0); opacity: .2; } 30% { opacity: 1; } 50% { transform: translate(18px, -16px); } 80% { transform: translate(-10px, -26px); opacity: .6; } }
+.bird { animation: bird 26s linear infinite; }
+@keyframes bird { from { transform: translateX(-30px); } to { transform: translateX(440px); } }
+.flake { animation: flake 7s linear infinite; }
+@keyframes flake { from { transform: translate(0, 0); } to { transform: translate(-24px, 316px); } }
+.drop { animation: drop .7s linear infinite; }
+@keyframes drop { from { transform: translate(0, -10px); opacity: 1; } to { transform: translate(-30px, 310px); opacity: .2; } }
+.flash { animation: flash 5s infinite; }
+@keyframes flash { 0%, 92%, 100% { opacity: 0; } 94% { opacity: 1; } 96% { opacity: .2; } 97% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .stage svg *, .stage svg { animation: none !important; } }

@@ -11,9 +11,9 @@ const { chromium } = require('playwright');
       getVoices() { return [{ lang: 'ar-EG', name: 'Arabic (Egypt)', voiceURI: 'eg' }, { lang: 'ar-SA', name: 'Arabic (Saudi)', voiceURI: 'sa' }]; } } });
   });
   await p.goto('file://' + require('path').resolve(__dirname, '../www/index.html')); await p.waitForTimeout(300);
-  const cards = await p.$$eval('.card', e => e.length); if (cards < 12) throw new Error('expected 12 cards, got ' + cards);
+  const cards = await p.$$eval('.card', e => e.length); if (cards < 20) throw new Error('expected 20+ cards, got ' + cards);
   // chips filter
-  await p.click('[data-a=kind][data-v=nights]'); if ((await p.$$eval('.card', e => e.length)) !== 3) throw new Error('nights filter'); await p.click('[data-a=kind][data-v=all]');
+  await p.click('[data-a=kind][data-v=nights]'); if ((await p.$$eval('.card', e => e.length)) !== 4) throw new Error('nights filter'); await p.click('[data-a=kind][data-v=all]');
   // Egyptian: auto-narrate "الأسد والفأر" to the end
   await p.click('[data-a=open][data-v=lionmouse]'); await p.click('[data-a=begin][data-v="auto:lionmouse"]');
   await p.waitForFunction(() => window.__hw.ended, null, { timeout: 20000 });
@@ -40,6 +40,23 @@ const { chromium } = require('playwright');
   const ids = await p.$$eval('.card', els => els.map(e => e.dataset.v));
   for (const id of ids) { await p.click(`[data-a=open][data-v=${id}]`); await p.click(`[data-a=begin][data-v="read:${id}"]`); const n = await p.$$eval('.dots i', e => e.length); while ((await p.evaluate(() => window.__hw.page)) < n - 1) await p.click('#next'); if (!(await p.textContent('#page')).includes('العبرة')) throw new Error(id + ' last page lacks the moral'); await p.click('[data-a=home]'); }
   console.log('all', ids.length, 'stories render to the last page');
+
+  // ---- native Android plugin path (what the APK uses)
+  const p2 = await b.newPage({ viewport: { width: 390, height: 800 } });
+  p2.on('pageerror', e => errs.push('native: ' + e.message));
+  await p2.addInitScript(() => {
+    window.__nspoken = [];
+    window.Capacitor = { isNativePlatform: () => true, Plugins: { TextToSpeech: {
+      getSupportedVoices: () => Promise.resolve({ voices: [{ voiceURI: 'x', name: 'Other', lang: 'en-US' }, { voiceURI: 'v1', name: 'Arabic (Egypt)', lang: 'ar-EG' }] }),
+      speak: (o) => { window.__nspoken.push(o); return new Promise(r => setTimeout(r, 80)); }, stop: () => Promise.resolve() } } };
+  });
+  await p2.goto('file://' + require('path').resolve(__dirname, '../www/index.html')); await p2.waitForTimeout(400);
+  await p2.click('[data-a=open][data-v=fox]'); await p2.click('[data-a=begin][data-v="auto:fox"]');
+  await p2.waitForFunction(() => window.__hw.ended, null, { timeout: 20000 });
+  const ns = await p2.evaluate(() => window.__nspoken);
+  if (ns.length !== 6) throw new Error('native: expected 6 utterances (5 pages + moral), got ' + ns.length);
+  if (ns[0].lang !== 'ar-EG' || ns[0].voice !== 1) throw new Error('native: should pick the ar-EG voice, got ' + JSON.stringify(ns[0]));
+  console.log('native TTS path ok:', ns.length, 'utterances');
   console.log('errors:', errs.filter(e => !/fonts\.googleapis|ERR_|Failed to load resource/.test(e)));
   if (errs.filter(e => !/fonts\.googleapis|ERR_|Failed to load resource/.test(e)).length) process.exit(1);
   await b.close();

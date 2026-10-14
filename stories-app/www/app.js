@@ -1,11 +1,11 @@
 (function () {
   var app = document.getElementById('app'), sheet = document.getElementById('sheet'), toastEl = document.getElementById('toast'), STORIES = window.STORIES;
   var UI = {
-    eg: { app: 'حواديت', tag: 'حكايات من التراث ومن العالم كله', dialect: 'اللهجة', eg: 'مصري', ar: 'فصحى', all: 'الكل', nights: 'ألف ليلة وليلة', folk: 'تراث شعبي', world: 'حكايات عالمية', pages: 'صفحات', done: 'خلصت ✓', cont: 'كمّل', foot: 'اختار حدوتة وخلّي الحكي عليّا، أو احكيها إنت لأولادك.',
+    eg: { app: 'حواديت', tag: 'حكايات من التراث ومن العالم كله', dialect: 'اللهجة', eg: 'مصري', ar: 'فصحى', all: 'الكل', nights: 'ألف ليلة وليلة', folk: 'تراث شعبي', wisdom: 'كليلة ودمنة', world: 'حكايات عالمية', pages: 'صفحات', done: 'خلصت ✓', cont: 'كمّل', foot: 'اختار حدوتة وخلّي الحكي عليّا، أو احكيها إنت لأولادك.',
       auto: 'احكيلي الحدوتة', autoSub: 'الجهاز يحكي بصوته وبيقلّب الصفحات لوحده', read: 'هحكيها أنا', readSub: 'النص مكتوب بخط كبير، والأب أو الأم يحكوا', resume: 'كمّل من صفحة', start: 'ابدأ من الأول', close: 'إغلاق',
       prev: 'السابقة', next: 'التالية', play: 'احكي', pause: 'استنى', listen: 'اسمع الصفحة', stop: 'وقّف', mode: 'طريقة الحكي', modeAuto: 'حكي', modeRead: 'قراءة', speed: 'السرعة', slow: 'بطيء', normal: 'عادي', fast: 'سريع', size: 'حجم الخط', voice: 'الصوت', theEnd: 'النهاية', moral: 'العبرة', finished: 'خلصت الحدوتة! 🌙', again: 'من الأول', home: 'كل الحواديت',
       noVoice: 'مفيش صوت عربي على الجهاز ده. نزّله من إعدادات الجهاز (تحويل النص إلى كلام)، أو اقرا الحدوتة بصوتك.', autoVoice: 'الصوت التلقائي', tipRead: 'نصيحة: غيّر صوتك مع كل شخصية، والأولاد هيحبوها أكتر!' },
-    ar: { app: 'حواديت', tag: 'حكايات من التراث ومن العالم كله', dialect: 'اللهجة', eg: 'مصري', ar: 'فصحى', all: 'الكل', nights: 'ألف ليلة وليلة', folk: 'تراث شعبي', world: 'حكايات عالمية', pages: 'صفحات', done: 'انتهت ✓', cont: 'تابع', foot: 'اختر حكاية ودع الجهاز يحكيها، أو احكِها أنتَ لأطفالك.',
+    ar: { app: 'حواديت', tag: 'حكايات من التراث ومن العالم كله', dialect: 'اللهجة', eg: 'مصري', ar: 'فصحى', all: 'الكل', nights: 'ألف ليلة وليلة', folk: 'تراث شعبي', wisdom: 'كليلة ودمنة', world: 'حكايات عالمية', pages: 'صفحات', done: 'انتهت ✓', cont: 'تابع', foot: 'اختر حكاية ودع الجهاز يحكيها، أو احكِها أنتَ لأطفالك.',
       auto: 'احكِ لي الحكاية', autoSub: 'يحكي الجهاز بصوته ويقلّب الصفحات تلقائيًا', read: 'سأحكيها بنفسي', readSub: 'النص مكتوب بخطٍّ كبير ليقرأه الأب أو الأم', resume: 'تابع من صفحة', start: 'ابدأ من البداية', close: 'إغلاق',
       prev: 'السابقة', next: 'التالية', play: 'احكِ', pause: 'إيقاف مؤقت', listen: 'استمع للصفحة', stop: 'إيقاف', mode: 'طريقة الحكي', modeAuto: 'حكي', modeRead: 'قراءة', speed: 'السرعة', slow: 'بطيء', normal: 'عادي', fast: 'سريع', size: 'حجم الخط', voice: 'الصوت', theEnd: 'النهاية', moral: 'العبرة', finished: 'انتهت الحكاية! 🌙', again: 'من البداية', home: 'كل الحكايات',
       noVoice: 'لا يوجد صوت عربي على هذا الجهاز. ثبّته من إعدادات الجهاز (تحويل النص إلى كلام)، أو اقرأ الحكاية بنفسك.', autoVoice: 'الصوت التلقائي', tipRead: 'نصيحة: غيّر صوتك مع كل شخصية، فيحبها الأطفال أكثر!' }
@@ -18,22 +18,43 @@
   function toast(m) { toastEl.textContent = m; toastEl.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { toastEl.hidden = true; }, 2800); }
 
   // ---------- speech
-  var synth = window.speechSynthesis || null, voices = [], token = 0, speaking = false;
-  function loadVoices() { if (!synth) return; voices = (synth.getVoices() || []).filter(function (v) { return /^ar/i.test(v.lang || ''); }); }
-  loadVoices(); if (synth && synth.addEventListener) synth.addEventListener('voiceschanged', function () { loadVoices(); if (S.story) renderReader(true); });
+  // Two engines: the native Android text-to-speech plugin (inside the APK) and the browser's speechSynthesis.
+  var cap = window.Capacitor, NT = cap && cap.isNativePlatform && cap.isNativePlatform() && cap.Plugins && cap.Plugins.TextToSpeech ? cap.Plugins.TextToSpeech : null;
+  var synth = window.speechSynthesis || null, voices = [], nativeVoices = [], token = 0, speaking = false, hlTimer = null;
+  function loadVoices() {
+    if (NT) {
+      NT.getSupportedVoices().then(function (r) { nativeVoices = (r && r.voices ? r.voices : []).map(function (v, i) { return { i: i, voiceURI: v.voiceURI || String(i), name: v.name || v.voiceURI || ('voice ' + i), lang: v.lang || '' }; }); voices = nativeVoices.filter(function (v) { return /^ar/i.test(v.lang); }); if (S.story) renderReader(true); }).catch(function () {});
+      return;
+    }
+    if (!synth) return; voices = (synth.getVoices() || []).filter(function (v) { return /^ar/i.test(v.lang || ''); });
+  }
+  loadVoices(); if (!NT && synth && synth.addEventListener) synth.addEventListener('voiceschanged', function () { loadVoices(); if (S.story) renderReader(true); });
   function pickVoice() {
     if (S.voiceURI) { var m = voices.filter(function (v) { return v.voiceURI === S.voiceURI; })[0]; if (m) return m; }
     var pref = S.dialect === 'eg' ? [/ar[-_]EG/i, /egypt|مصر/i] : [/ar[-_]SA/i, /ar[-_]XA/i, /saudi|السعود/i];
     for (var i = 0; i < pref.length; i++) { var f = voices.filter(function (v) { return pref[i].test(v.lang) || pref[i].test(v.name); })[0]; if (f) return f; }
     return voices[0] || null;
   }
-  function ttsOK() { return !!synth && typeof window.SpeechSynthesisUtterance === 'function'; }
-  function stopSpeech() { token++; speaking = false; if (synth) { try { synth.cancel(); } catch (e) {} } }
+  function ttsOK() { return !!NT || (!!synth && typeof window.SpeechSynthesisUtterance === 'function'); }
+  function stopSpeech() { token++; speaking = false; clearInterval(hlTimer); clearHl(); if (NT) { try { NT.stop(); } catch (e) {} } else if (synth) { try { synth.cancel(); } catch (e) {} } }
+  // The native plugin has no word events, so the highlight follows an estimate of the reading speed.
+  function estimateHighlight(text, my) {
+    var t0 = Date.now(), perChar = 78 / S.rate; clearInterval(hlTimer);
+    hlTimer = setInterval(function () { if (my !== token) return clearInterval(hlTimer); highlight(Math.floor((Date.now() - t0) / perChar)); }, 90);
+  }
   function speakParts(parts, onDone) {
     stopSpeech(); var my = token, v = pickVoice(), i = 0; speaking = true;
     function next() {
       if (my !== token) return; if (i >= parts.length) { speaking = false; if (onDone) onDone(); return; }
-      var p = parts[i++], u = new window.SpeechSynthesisUtterance(p.text); u.lang = v ? v.lang : (S.dialect === 'eg' ? 'ar-EG' : 'ar-SA'); if (v) u.voice = v; u.rate = S.rate; u.pitch = 1.05;
+      var p = parts[i++];
+      if (NT) {
+        var lang = v && v.lang ? v.lang : (S.dialect === 'eg' ? 'ar-EG' : 'ar-SA'), opts = { text: p.text, lang: lang, rate: S.rate, pitch: 1.05, volume: 1, category: 'playback', queueStrategy: 0 };
+        if (v && typeof v.i === 'number') opts.voice = v.i;
+        if (p.hl) estimateHighlight(p.text, my);
+        NT.speak(opts).then(function () { if (my === token) { clearInterval(hlTimer); clearHl(); next(); } }).catch(function () { if (my === token) { speaking = false; S.playing = false; clearInterval(hlTimer); updateControls(); toast(T('noVoice')); } });
+        return;
+      }
+      var u = new window.SpeechSynthesisUtterance(p.text); u.lang = v ? v.lang : (S.dialect === 'eg' ? 'ar-EG' : 'ar-SA'); if (v) u.voice = v; u.rate = S.rate; u.pitch = 1.05;
       u.onboundary = function (e) { if (my === token && p.hl) highlight(e.charIndex || 0); };
       u.onend = function () { if (my === token) { clearHl(); next(); } };
       u.onerror = function () { if (my === token) { speaking = false; S.playing = false; updateControls(); } };
@@ -56,7 +77,7 @@
     var list = STORIES.filter(function (s) { return S.kind === 'all' || s.kind === S.kind; });
     app.innerHTML = '<div class="hero"><h1>' + T('app') + '</h1><p>' + T('tag') + '</p></div>' +
       '<div><div class="seg-label">' + T('dialect') + '</div><div class="seg" role="group" aria-label="' + T('dialect') + '"><button data-a="dialect" data-v="eg" aria-pressed="' + (S.dialect === 'eg') + '">' + UI.eg.eg + '</button><button data-a="dialect" data-v="ar" aria-pressed="' + (S.dialect === 'ar') + '">' + UI.ar.ar + '</button></div></div>' +
-      '<div class="chips" role="group">' + ['all', 'nights', 'folk', 'world'].map(function (k) { return '<button class="chip" data-a="kind" data-v="' + k + '" aria-pressed="' + (S.kind === k) + '">' + T(k) + '</button>'; }).join('') + '</div>' +
+      '<div class="chips" role="group">' + ['all', 'nights', 'folk', 'wisdom', 'world'].map(function (k) { return '<button class="chip" data-a="kind" data-v="' + k + '" aria-pressed="' + (S.kind === k) + '">' + T(k) + '</button>'; }).join('') + '</div>' +
       '<div class="grid">' + list.map(function (st) {
         var pr = S.progress[st.id] || {}, badge = pr.done ? '<span class="badge">' + T('done') + '</span>' : (pr.page > 0 ? '<span class="badge progress">' + T('cont') + '</span>' : '');
         return '<button class="card" data-a="open" data-v="' + st.id + '">' + badge + '<div class="cover">' + cover(st, 'c' + st.id) + '</div><div class="meta"><h3>' + esc(st.title[S.dialect]) + '</h3><small>' + st.pages.length + ' ' + T('pages') + '</small></div></button>';
@@ -65,7 +86,7 @@
 
   // ---------- start sheet
   function openSheet(id) {
-    var st = STORIES.filter(function (s) { return s.id === id; })[0], pr = S.progress[id] || {}, warn = (!ttsOK() || !voices.length) ? '<div class="warn">' + T('noVoice') + '</div>' : '';
+    var st = STORIES.filter(function (s) { return s.id === id; })[0], pr = S.progress[id] || {}, warn = (!ttsOK() || (!voices.length && !NT)) ? '<div class="warn">' + T('noVoice') + '</div>' : '';
     sheet.hidden = false;
     sheet.innerHTML = '<div class="sheet" role="dialog" aria-modal="true"><div class="cover">' + cover(st, 's' + st.id) + '</div><h2>' + esc(st.title[S.dialect]) + '</h2>' + warn +
       '<button class="big auto" data-a="begin" data-v="auto:' + id + '"><span class="ic">🔊</span><span>' + T('auto') + '<small>' + T('autoSub') + '</small></span></button>' +
@@ -103,7 +124,7 @@
   }
   function play() {
     if (!S.story) return;
-    if (!ttsOK() || !voices.length) { if (S.mode === 'auto') { toast(T('noVoice')); S.mode = 'read'; S.playing = false; renderReader(false); } else toast(T('noVoice')); return; }
+    if (!ttsOK() || (!voices.length && !NT)) { if (S.mode === 'auto') { toast(T('noVoice')); S.mode = 'read'; S.playing = false; renderReader(false); } else toast(T('noVoice')); return; }
     if (S.mode === 'auto') {
       S.playing = true; S.ended = false; updateControls();
       (function readPage() {
