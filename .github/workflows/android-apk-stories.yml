@@ -13,6 +13,10 @@ defaults:
 permissions:
   contents: write
 
+concurrency:
+  group: hawadeet-release
+  cancel-in-progress: false
+
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -45,7 +49,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "stories-apk-${{ github.run_number }}" "$RUNNER_TEMP/hawadeet.apk" \
+          # keep a single release with a fixed link: remove every older Hawadeet build first
+          for t in $(gh release list --repo "$GITHUB_REPOSITORY" --limit 100 --json tagName --jq '.[].tagName' | grep -E '^(stories-apk-|hawadeet-latest$)' || true); do
+            gh release delete "$t" --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag || true
+          done
+          gh release create "hawadeet-latest" "$RUNNER_TEMP/hawadeet.apk" \
             --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease \
-            --title "Hawadeet / حواديت (APK build ${{ github.run_number }})" \
-            --notes "Debug-signed APK for installing directly on an Android phone. Egyptian + Modern Standard Arabic kids stories."
+            --title "Hawadeet / حواديت (latest, build ${{ github.run_number }})" \
+            --notes "Debug-signed APK for installing directly on an Android phone. Modern Standard Arabic kids stories."
