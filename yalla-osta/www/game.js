@@ -264,7 +264,7 @@
     else if (p.x > W - 120 && p.y > H - 44) { lang = lang === 'ar' ? 'en' : 'ar'; try { localStorage.setItem('osta.lang', lang); } catch (x) {} document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; }
     else start();
   });
-  canvas.addEventListener('pointermove', function (e) { if (state === 'play' && e.pointerId === steerId) setTarget(pos(e)); });
+  canvas.addEventListener('pointermove', function (e) { if (state === 'play' && (e.pointerId === steerId || e.pointerType === 'mouse')) setTarget(pos(e)); });
   function endSteer(e) { if (e.pointerId === steerId) steerId = null; }
   canvas.addEventListener('pointerup', endSteer); canvas.addEventListener('pointercancel', endSteer);
   addEventListener('keydown', function (e) {

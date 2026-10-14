@@ -144,7 +144,7 @@
     else if (p.x > C.W - 110 && p.y > C.H - 40) { lang = lang === 'ar' ? 'en' : 'ar'; try { localStorage.setItem('clown.lang', lang); } catch (x) {} document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; }
     else start();
   });
-  canvas.addEventListener('pointermove', function (e) { if (state === 'play' && e.pointerId === steer) setTarget(toGame(e)); });
+  canvas.addEventListener('pointermove', function (e) { if (state === 'play' && (e.pointerId === steer || e.pointerType === 'mouse')) setTarget(toGame(e)); });
   canvas.addEventListener('pointerup', function (e) { if (e.pointerId === steer) steer = null; });
   addEventListener('keydown', function (e) {
     if (e.key === 'ArrowLeft' || e.key === 'a') held = -1; else if (e.key === 'ArrowRight' || e.key === 'd') held = 1;
